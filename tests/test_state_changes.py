@@ -100,3 +100,13 @@ def test_failed_edit_does_not_count_as_state_change() -> None:
         ],
     )
     assert decision.decision is Decision.UNNECESSARY
+
+
+def test_editing_an_extensionless_doc_file_does_not_require_tests() -> None:
+    decision = judge(
+        "Add the new contributor to AUTHORS",
+        run_tests(),
+        history=[rec(edit("AUTHORS", "Add Dana to the contributor list"), "ok")],
+    )
+    assert decision.reason_code is not ReasonCode.VERIFICATION_REQUIRED
+    assert decision.decision is not Decision.NECESSARY

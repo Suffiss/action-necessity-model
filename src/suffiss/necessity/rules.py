@@ -144,7 +144,10 @@ def targets_related(left: str, right: str) -> bool:
 
 
 def is_doc_path(path: str) -> bool:
-    return PurePosixPath(path).suffix in lexicon.DOC_EXTENSIONS or path.startswith("docs/")
+    file = PurePosixPath(path)
+    if file.suffix in lexicon.DOC_EXTENSIONS or path.startswith("docs/"):
+        return True
+    return not file.suffix and file.name in lexicon.DOC_FILENAMES
 
 
 def is_broad_action(action: Action) -> bool:

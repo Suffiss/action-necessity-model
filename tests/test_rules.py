@@ -1,7 +1,7 @@
 import pytest
 
 from suffiss.necessity.models import Action
-from suffiss.necessity.rules import ActionKind, ResultStatus, classify_action, classify_result, is_mutating
+from suffiss.necessity.rules import ActionKind, ResultStatus, classify_action, classify_result, is_doc_path, is_mutating
 
 
 @pytest.mark.parametrize(
@@ -43,3 +43,18 @@ def test_classify_result(result: str, expected: ResultStatus) -> None:
 def test_classify_action(action: Action, kind: ActionKind, mutating: bool) -> None:
     assert classify_action(action) is kind
     assert is_mutating(action) is mutating
+
+
+@pytest.mark.parametrize(
+    ("path", "expected"),
+    [
+        ("readme.md", True),
+        ("docs/setup.py", True),
+        ("license", True),
+        ("notice", True),
+        ("src/license.py", False),
+        ("src/app.py", False),
+    ],
+)
+def test_is_doc_path(path: str, expected: bool) -> None:
+    assert is_doc_path(path) is expected
