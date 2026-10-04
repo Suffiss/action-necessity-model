@@ -35,3 +35,4 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-ra"
+filterwarnings = ["error::SyntaxWarning"]
