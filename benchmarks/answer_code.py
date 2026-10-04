@@ -21,7 +21,7 @@ LABELS = {digit: label for label, digit in DIGITS.items()}
 SETS = {"pilot": "P", "full": "F"}
 BACKGROUND = {True: "C", False: "L", None: "U"}
 _HEADER = re.compile(r"V1-([PF])-([CLU])")
-_GROUP = re.compile(r"(\d{2}):([0-3-]{5})")
+_GROUP = re.compile(r"(\d{2}):([0-3-]+)")
 _CHECK = re.compile(r"CHK\s*(\d{1,2})")
 
 
@@ -64,6 +64,9 @@ def decode(text: str, groups_by_set: Mapping[str, Sequence[Sequence[str]]]) -> D
     found = _GROUP.findall(text)
     if [int(n) for n, _ in found] != list(range(1, len(groups) + 1)):
         raise ValueError(f"expected scenario groups 01..{len(groups):02d} in order, found {len(found)}")
+    for ids, (number, row) in zip(groups, found):
+        if len(row) != len(ids):
+            raise ValueError(f"group {number} has {len(row)} digits, expected {len(ids)}")
     digits = "".join(d for _, d in found)
     if checksum(digits) != int(check.group(1)):
         raise ValueError("checksum mismatch: a digit was probably misread")

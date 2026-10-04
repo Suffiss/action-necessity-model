@@ -35,7 +35,13 @@ def test_a_single_misread_digit_is_caught() -> None:
 
 @pytest.mark.parametrize(
     "text",
-    ["01:12345 CHK 10", "V1-P-L 01:11111 CHK 10", "V1-P-L 02:11111 01:11111 CHK 10", "V1-X-L 01:11111 02:11111 CHK 1"],
+    [
+        "01:12345 CHK 10",
+        "V1-P-L 01:11111 CHK 10",
+        "V1-P-L 02:11111 01:11111 CHK 10",
+        "V1-X-L 01:11111 02:11111 CHK 1",
+        "V1-P-L 01:1111 02:11111 CHK 1",
+    ],
 )
 def test_malformed_codes_are_rejected(text: str) -> None:
     with pytest.raises(ValueError):
