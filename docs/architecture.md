@@ -151,6 +151,7 @@ without materially reducing task success.
 | `benchmarks/dataset.jsonl` | 30 cases, 6 categories | development | Labels committed before the first evaluator run |
 | `benchmarks/holdout.jsonl` | 12 cases, 6 categories | out-of-sample estimate | Labels committed first; run once; never tuned on |
 | `simulations/trajectories.jsonl` | 6 trajectories, 39 steps | end-to-end savings vs. success | Essential flags committed before the first run |
+| `benchmarks/v1/cases.jsonl` | 300 cases (60 scenarios × 5 candidates) | unbiased reference labels | Labelled by independent annotators; split by scenario; frozen test (see [v1 protocol](../benchmarks/v1/README.md)) |
 
 Hard cases were included on purpose:
 

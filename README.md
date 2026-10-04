@@ -197,6 +197,10 @@ All runs are recorded verbatim, including regressions, in
 - **Skipping `uncertain` breaks half the trajectories.** Treat `uncertain` as
   "execute" unless you have your own budget logic (see
   [`examples/tool_agent.py`](examples/tool_agent.py)).
+- **All the cases above were written and labelled by the gate's author.** A
+  300-case benchmark for *independent* annotators is ready but not yet
+  labelled. See [benchmarks/v1](benchmarks/v1/README.md) for the protocol and
+  [docs/labeling-guide.md](docs/labeling-guide.md) for the annotator guide.
 
 ## Limitations
 
@@ -227,6 +231,7 @@ out of scope for v0.
 ```text
 src/suffiss/necessity/   models, rules, features, scoring, similarity, evaluator, CLI
 benchmarks/              labelled cases, held-out set, metrics, runner, results log
+benchmarks/v1/           300 cases for independent labeling, pilot list, protocol
 simulations/             labelled trajectories, simulator, results log
 examples/                runnable gated agent loops
 docs/architecture.md     design and evaluation methodology

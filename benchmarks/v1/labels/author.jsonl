@@ -1,0 +1,300 @@
+{"id": "v1-coding-01-a", "label": "necessary", "note": "This is the fix the evidence points to."}
+{"id": "v1-coding-01-b", "label": "unnecessary", "note": "Same file, unchanged since it was read."}
+{"id": "v1-coding-01-c", "label": "unnecessary", "note": "Deterministic failure, nothing changed."}
+{"id": "v1-coding-01-d", "label": "uncertain", "note": "Assertion already visible; reading the test may still clarify intent."}
+{"id": "v1-coding-01-e", "label": "unnecessary", "note": "A baseline of unrelated tests is not needed for this fix."}
+{"id": "v1-coding-02-a", "label": "necessary", "note": "Confirms the edit compiles."}
+{"id": "v1-coding-02-b", "label": "necessary", "note": "First check of the edited file."}
+{"id": "v1-coding-02-c", "label": "unnecessary", "note": "Identical edit already applied."}
+{"id": "v1-coding-02-d", "label": "unnecessary", "note": "Repository-wide search adds nothing for a one-file change."}
+{"id": "v1-coding-02-e", "label": "uncertain", "note": "Documenting the flag is plausible but not asked for."}
+{"id": "v1-coding-03-a", "label": "necessary", "note": "The error points at this file and line."}
+{"id": "v1-coding-03-b", "label": "unnecessary", "note": "Same deterministic compile error, nothing changed."}
+{"id": "v1-coding-03-c", "label": "unnecessary", "note": "A type error is not a missing-dependency problem."}
+{"id": "v1-coding-03-d", "label": "uncertain", "note": "Compiler settings rarely matter for TS2322, but could."}
+{"id": "v1-coding-03-e", "label": "unnecessary", "note": "The message is self-explanatory."}
+{"id": "v1-coding-04-a", "label": "unnecessary", "note": "A metadata bump does not affect behaviour."}
+{"id": "v1-coding-04-b", "label": "necessary", "note": "Goal done and verified."}
+{"id": "v1-coding-04-c", "label": "unnecessary", "note": "Already verified after the edit."}
+{"id": "v1-coding-04-d", "label": "uncertain", "note": "Other files may duplicate the version, but the goal names only pyproject.toml."}
+{"id": "v1-coding-04-e", "label": "unnecessary", "note": "Committing was not requested."}
+{"id": "v1-coding-05-a", "label": "necessary", "note": "A known remaining occurrence."}
+{"id": "v1-coding-05-b", "label": "unnecessary", "note": "Remaining occurrences are already known; a final check belongs after all edits."}
+{"id": "v1-coding-05-c", "label": "uncertain", "note": "Verifying a one-line rename is optional."}
+{"id": "v1-coding-05-d", "label": "necessary", "note": "A known remaining occurrence."}
+{"id": "v1-coding-05-e", "label": "unnecessary", "note": "Tests will fail until the remaining references are renamed."}
+{"id": "v1-coding-06-a", "label": "necessary", "note": "The log points at the database being down."}
+{"id": "v1-coding-06-b", "label": "unnecessary", "note": "Nothing changed."}
+{"id": "v1-coding-06-c", "label": "uncertain", "note": "The handler is probably fine, but its error handling may matter."}
+{"id": "v1-coding-06-d", "label": "unnecessary", "note": "Already read; no new events expected."}
+{"id": "v1-coding-06-e", "label": "unnecessary", "note": "The cause is already clear from the log."}
+{"id": "v1-coding-07-a", "label": "necessary", "note": "The remaining reported error."}
+{"id": "v1-coding-07-b", "label": "unnecessary", "note": "The only remaining error is already known."}
+{"id": "v1-coding-07-c", "label": "uncertain", "note": "An alternative route to the same fix."}
+{"id": "v1-coding-07-d", "label": "necessary", "note": "Needed to edit line 10 correctly."}
+{"id": "v1-coding-07-e", "label": "unnecessary", "note": "The goal is lint, not tests."}
+{"id": "v1-coding-08-a", "label": "uncertain", "note": "Useful for naming conventions, not essential."}
+{"id": "v1-coding-08-b", "label": "necessary", "note": "This is the deliverable."}
+{"id": "v1-coding-08-c", "label": "unnecessary", "note": "Already read; unchanged."}
+{"id": "v1-coding-08-d", "label": "unnecessary", "note": "The test file does not exist yet."}
+{"id": "v1-coding-08-e", "label": "unnecessary", "note": "Basic pytest knowledge is assumed."}
+{"id": "v1-coding-09-a", "label": "necessary", "note": "The upgrade itself."}
+{"id": "v1-coding-09-b", "label": "unnecessary", "note": "Version already known."}
+{"id": "v1-coding-09-c", "label": "unnecessary", "note": "Would install the old version."}
+{"id": "v1-coding-09-d", "label": "uncertain", "note": "Checking for breaking changes is prudent but optional."}
+{"id": "v1-coding-09-e", "label": "unnecessary", "note": "Outside the requested scope."}
+{"id": "v1-coding-10-a", "label": "necessary", "note": "The code is the only source for the explanation."}
+{"id": "v1-coding-10-b", "label": "unnecessary", "note": "Explaining code does not need a test run."}
+{"id": "v1-coding-10-c", "label": "uncertain", "note": "Callers can illustrate usage but are not required."}
+{"id": "v1-coding-10-d", "label": "uncertain", "note": "Examples help but are not required."}
+{"id": "v1-coding-10-e", "label": "unnecessary", "note": "Reading the code suffices."}
+{"id": "v1-research-01-a", "label": "necessary", "note": "The second half of the comparison."}
+{"id": "v1-research-01-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-01-c", "label": "unnecessary", "note": "Reviews are not the official pages the goal asks for."}
+{"id": "v1-research-01-d", "label": "uncertain", "note": "A route to the Apple page, though its URL is predictable."}
+{"id": "v1-research-01-e", "label": "unnecessary", "note": "A different model."}
+{"id": "v1-research-02-a", "label": "uncertain", "note": "The abstract may already cover the main findings."}
+{"id": "v1-research-02-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-02-c", "label": "unnecessary", "note": "Secondary summaries add nothing over the abstract."}
+{"id": "v1-research-02-d", "label": "necessary", "note": "The abstract states the main findings."}
+{"id": "v1-research-02-e", "label": "unnecessary", "note": "Code is not findings."}
+{"id": "v1-research-03-a", "label": "necessary", "note": "The search found the source but not the number."}
+{"id": "v1-research-03-b", "label": "unnecessary", "note": "Same search, same result."}
+{"id": "v1-research-03-c", "label": "unnecessary", "note": "Not the requested source."}
+{"id": "v1-research-03-d", "label": "unnecessary", "note": "A broader search than the lead already in hand."}
+{"id": "v1-research-03-e", "label": "uncertain", "note": "Also official, but the clock answers 'current' more directly."}
+{"id": "v1-research-04-a", "label": "necessary", "note": "The second peer-reviewed source."}
+{"id": "v1-research-04-b", "label": "unnecessary", "note": "Not peer-reviewed."}
+{"id": "v1-research-04-c", "label": "necessary", "note": "Only two peer-reviewed sources found so far."}
+{"id": "v1-research-04-d", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-04-e", "label": "unnecessary", "note": "Far broader than the goal."}
+{"id": "v1-research-05-a", "label": "necessary", "note": "Today's reference rate is in hand."}
+{"id": "v1-research-05-b", "label": "unnecessary", "note": "Same day, same rate."}
+{"id": "v1-research-05-c", "label": "unnecessary", "note": "The answer is already known."}
+{"id": "v1-research-05-d", "label": "uncertain", "note": "Cross-checking is defensible but not required."}
+{"id": "v1-research-05-e", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-research-06-a", "label": "necessary", "note": "Contact channels live there."}
+{"id": "v1-research-06-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-06-c", "label": "unnecessary", "note": "Project channels answer 'how to contact'; personal details are not needed."}
+{"id": "v1-research-06-d", "label": "uncertain", "note": "May list contact routes; the repository page might suffice."}
+{"id": "v1-research-06-e", "label": "unnecessary", "note": "A different library."}
+{"id": "v1-research-07-a", "label": "uncertain", "note": "The snippet already answers; reading the primary source is defensible."}
+{"id": "v1-research-07-b", "label": "unnecessary", "note": "Same search."}
+{"id": "v1-research-07-c", "label": "uncertain", "note": "A second source strengthens a fact-check."}
+{"id": "v1-research-07-d", "label": "necessary", "note": "An authoritative answer is in hand."}
+{"id": "v1-research-07-e", "label": "unnecessary", "note": "A general article, broader than the claim."}
+{"id": "v1-research-08-a", "label": "necessary", "note": "Most of the breaking-changes section is still unread."}
+{"id": "v1-research-08-b", "label": "unnecessary", "note": "Same truncated read."}
+{"id": "v1-research-08-c", "label": "unnecessary", "note": "The official notes are the better source and are already open."}
+{"id": "v1-research-08-d", "label": "unnecessary", "note": "4.2's notes describe 4.2, not changes towards 5.0."}
+{"id": "v1-research-08-e", "label": "uncertain", "note": "Lists features removed in 5.0; partly overlaps the release notes."}
+{"id": "v1-research-09-a", "label": "necessary", "note": "A reworded search after zero results is new information."}
+{"id": "v1-research-09-b", "label": "unnecessary", "note": "Same search, same empty result."}
+{"id": "v1-research-09-c", "label": "necessary", "note": "The most direct official source."}
+{"id": "v1-research-09-d", "label": "unnecessary", "note": "Too generic to help."}
+{"id": "v1-research-09-e", "label": "uncertain", "note": "Reporting 'not found' after one search may be premature."}
+{"id": "v1-research-10-a", "label": "necessary", "note": "The remaining company."}
+{"id": "v1-research-10-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-10-c", "label": "uncertain", "note": "Could locate the filing, but a summary is not the filing."}
+{"id": "v1-research-10-d", "label": "unnecessary", "note": "Wrong period."}
+{"id": "v1-research-10-e", "label": "unnecessary", "note": "A total was not asked for."}
+{"id": "v1-browser-01-a", "label": "necessary", "note": "The goal's final step."}
+{"id": "v1-browser-01-b", "label": "unnecessary", "note": "Wrong month."}
+{"id": "v1-browser-01-c", "label": "unnecessary", "note": "Already open, nothing changed."}
+{"id": "v1-browser-01-d", "label": "unnecessary", "note": "Unrelated page."}
+{"id": "v1-browser-01-e", "label": "uncertain", "note": "An alternative route to the PDF."}
+{"id": "v1-browser-02-a", "label": "necessary", "note": "A required field still empty."}
+{"id": "v1-browser-02-b", "label": "necessary", "note": "A required field still empty."}
+{"id": "v1-browser-02-c", "label": "unnecessary", "note": "Already filled."}
+{"id": "v1-browser-02-d", "label": "unnecessary", "note": "Already read; details known."}
+{"id": "v1-browser-02-e", "label": "uncertain", "note": "Optional field; the resume has no cover letter."}
+{"id": "v1-browser-03-a", "label": "necessary", "note": "The price is on the page already loaded."}
+{"id": "v1-browser-03-b", "label": "unnecessary", "note": "Already loaded."}
+{"id": "v1-browser-03-c", "label": "unnecessary", "note": "The price is already known."}
+{"id": "v1-browser-03-d", "label": "unnecessary", "note": "Different plan."}
+{"id": "v1-browser-03-e", "label": "unnecessary", "note": "Not needed to report a price."}
+{"id": "v1-browser-04-a", "label": "necessary", "note": "Reloading shows whether the new address actually persisted."}
+{"id": "v1-browser-04-b", "label": "unnecessary", "note": "Already saved."}
+{"id": "v1-browser-04-c", "label": "unnecessary", "note": "Already entered and saved."}
+{"id": "v1-browser-04-d", "label": "uncertain", "note": "Verification may be part of 'saved', but the goal does not mention it."}
+{"id": "v1-browser-04-e", "label": "uncertain", "note": "The save message may or may not count as confirmation."}
+{"id": "v1-browser-05-a", "label": "necessary", "note": "The third page is still missing."}
+{"id": "v1-browser-05-b", "label": "unnecessary", "note": "Already collected."}
+{"id": "v1-browser-05-c", "label": "unnecessary", "note": "Beyond the three pages asked for."}
+{"id": "v1-browser-05-d", "label": "unnecessary", "note": "Already collected."}
+{"id": "v1-browser-05-e", "label": "unnecessary", "note": "Titles are enough."}
+{"id": "v1-browser-06-a", "label": "necessary", "note": "The next step of the flow."}
+{"id": "v1-browser-06-b", "label": "unnecessary", "note": "Would add a second mug; one item is enough."}
+{"id": "v1-browser-06-c", "label": "unnecessary", "note": "Already on the shop."}
+{"id": "v1-browser-06-d", "label": "uncertain", "note": "Evidence can be useful in a test report, but is optional."}
+{"id": "v1-browser-06-e", "label": "unnecessary", "note": "Nothing has gone wrong."}
+{"id": "v1-browser-07-a", "label": "necessary", "note": "The page linked as 'Contact us'."}
+{"id": "v1-browser-07-b", "label": "unnecessary", "note": "Already loaded."}
+{"id": "v1-browser-07-c", "label": "unnecessary", "note": "The official contact page is one click away."}
+{"id": "v1-browser-07-d", "label": "unnecessary", "note": "Not needed for a public phone number."}
+{"id": "v1-browser-07-e", "label": "uncertain", "note": "Might list the number too."}
+{"id": "v1-browser-08-a", "label": "necessary", "note": "The right dataset."}
+{"id": "v1-browser-08-b", "label": "unnecessary", "note": "Wrong year."}
+{"id": "v1-browser-08-c", "label": "unnecessary", "note": "Same search."}
+{"id": "v1-browser-08-d", "label": "unnecessary", "note": "A step backwards."}
+{"id": "v1-browser-08-e", "label": "uncertain", "note": "The API is another way to fetch the file, but more than needed."}
+{"id": "v1-browser-09-a", "label": "unnecessary", "note": "Would post a duplicate."}
+{"id": "v1-browser-09-b", "label": "uncertain", "note": "Reloading confirms the comment, though the page already said it was posted."}
+{"id": "v1-browser-09-c", "label": "necessary", "note": "The comment is posted."}
+{"id": "v1-browser-09-d", "label": "unnecessary", "note": "Already posted."}
+{"id": "v1-browser-09-e", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-browser-10-a", "label": "necessary", "note": "The maintenance section had not loaded yet."}
+{"id": "v1-browser-10-b", "label": "uncertain", "note": "Past incidents, possibly upcoming ones too."}
+{"id": "v1-browser-10-c", "label": "unnecessary", "note": "The status page is the source."}
+{"id": "v1-browser-10-d", "label": "uncertain", "note": "May list scheduled maintenance."}
+{"id": "v1-browser-10-e", "label": "unnecessary", "note": "Not where maintenance is announced."}
+{"id": "v1-database-01-a", "label": "necessary", "note": "Revenue is still unknown."}
+{"id": "v1-database-01-b", "label": "uncertain", "note": "Derivable from revenue and count, though a direct query is reasonable."}
+{"id": "v1-database-01-c", "label": "unnecessary", "note": "Count already known."}
+{"id": "v1-database-01-d", "label": "unnecessary", "note": "Aggregates do not need every row."}
+{"id": "v1-database-01-e", "label": "uncertain", "note": "Confirms the amount column exists; the count query only proved the table does."}
+{"id": "v1-database-02-a", "label": "necessary", "note": "Shows whether the job ran twice or retried."}
+{"id": "v1-database-02-b", "label": "unnecessary", "note": "Same query, nothing changed."}
+{"id": "v1-database-02-c", "label": "unnecessary", "note": "Already described."}
+{"id": "v1-database-02-d", "label": "unnecessary", "note": "The goal is to find the cause, not to clean up."}
+{"id": "v1-database-02-e", "label": "necessary", "note": "The insert logic is where duplicates would come from."}
+{"id": "v1-database-03-a", "label": "necessary", "note": "Existing NULLs would make the constraint fail."}
+{"id": "v1-database-03-b", "label": "uncertain", "note": "The goal's main step, but running it before checking for NULLs is not 'safe'."}
+{"id": "v1-database-03-c", "label": "unnecessary", "note": "Already described."}
+{"id": "v1-database-03-d", "label": "unnecessary", "note": "A count answers the question."}
+{"id": "v1-database-03-e", "label": "uncertain", "note": "Prudent, though not strictly required."}
+{"id": "v1-database-04-a", "label": "necessary", "note": "The counts are in hand."}
+{"id": "v1-database-04-b", "label": "unnecessary", "note": "Same query."}
+{"id": "v1-database-04-c", "label": "unnecessary", "note": "Not what was asked."}
+{"id": "v1-database-04-d", "label": "unnecessary", "note": "The query already worked."}
+{"id": "v1-database-04-e", "label": "uncertain", "note": "Checks that 'active' is the right status value; defensible but optional."}
+{"id": "v1-database-05-a", "label": "necessary", "note": "The backfill needs to know the shipments columns."}
+{"id": "v1-database-05-b", "label": "uncertain", "note": "The main remaining step, but it assumes the shipments columns."}
+{"id": "v1-database-05-c", "label": "unnecessary", "note": "Already applied; it would only error."}
+{"id": "v1-database-05-d", "label": "uncertain", "note": "The ALTER output already confirms the column."}
+{"id": "v1-database-05-e", "label": "unnecessary", "note": "Not needed for the backfill."}
+{"id": "v1-database-06-a", "label": "uncertain", "note": "Fixes future measurement, but holds no data for the past 24 hours."}
+{"id": "v1-database-06-b", "label": "unnecessary", "note": "Will fail the same way."}
+{"id": "v1-database-06-c", "label": "necessary", "note": "The slow-query log is the remaining source for past queries."}
+{"id": "v1-database-06-d", "label": "uncertain", "note": "Only shows what is running now."}
+{"id": "v1-database-06-e", "label": "uncertain", "note": "Tells whether the log will contain slow queries."}
+{"id": "v1-database-07-a", "label": "necessary", "note": "The goal explicitly asks to confirm none remain."}
+{"id": "v1-database-07-b", "label": "unnecessary", "note": "Already done."}
+{"id": "v1-database-07-c", "label": "unnecessary", "note": "A count confirms it."}
+{"id": "v1-database-07-d", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-database-07-e", "label": "uncertain", "note": "'DELETE 17' matches the count, but the goal asks for explicit confirmation."}
+{"id": "v1-database-08-a", "label": "necessary", "note": "The query that answers the goal."}
+{"id": "v1-database-08-b", "label": "unnecessary", "note": "Already described."}
+{"id": "v1-database-08-c", "label": "uncertain", "note": "Confirms Germany is stored as 'DE'."}
+{"id": "v1-database-08-d", "label": "unnecessary", "note": "Far broader than needed."}
+{"id": "v1-database-08-e", "label": "unnecessary", "note": "Not part of the answer."}
+{"id": "v1-database-09-a", "label": "necessary", "note": "Needed to compare with the primary."}
+{"id": "v1-database-09-b", "label": "unnecessary", "note": "Only useful once there is something to compare it with."}
+{"id": "v1-database-09-c", "label": "necessary", "note": "Gives the lag in time directly."}
+{"id": "v1-database-09-d", "label": "unnecessary", "note": "Disruptive, and diagnosis comes first."}
+{"id": "v1-database-09-e", "label": "unnecessary", "note": "Unrelated to lag."}
+{"id": "v1-database-10-a", "label": "necessary", "note": "The deliverable."}
+{"id": "v1-database-10-b", "label": "unnecessary", "note": "Rows already fetched."}
+{"id": "v1-database-10-c", "label": "unnecessary", "note": "Broader than needed."}
+{"id": "v1-database-10-d", "label": "uncertain", "note": "Avoids a write error, but is often unnecessary."}
+{"id": "v1-database-10-e", "label": "uncertain", "note": "Negative stock may or may not count as 'zero stock'."}
+{"id": "v1-filesystem-01-a", "label": "necessary", "note": "Remaining rename."}
+{"id": "v1-filesystem-01-b", "label": "necessary", "note": "Remaining rename."}
+{"id": "v1-filesystem-01-c", "label": "unnecessary", "note": "Already renamed."}
+{"id": "v1-filesystem-01-d", "label": "unnecessary", "note": "A mid-way listing adds nothing; a check belongs after the last rename."}
+{"id": "v1-filesystem-01-e", "label": "unnecessary", "note": "Far outside the task."}
+{"id": "v1-filesystem-02-a", "label": "necessary", "note": "The task itself."}
+{"id": "v1-filesystem-02-b", "label": "unnecessary", "note": "Same listing."}
+{"id": "v1-filesystem-02-c", "label": "uncertain", "note": "A before figure helps report space freed, but is optional."}
+{"id": "v1-filesystem-02-d", "label": "unnecessary", "note": "Far beyond the old .tmp files."}
+{"id": "v1-filesystem-02-e", "label": "uncertain", "note": "Context for the result, not required."}
+{"id": "v1-filesystem-03-a", "label": "uncertain", "note": "Precedence matters only if 'which one wins' is part of the question."}
+{"id": "v1-filesystem-03-b", "label": "necessary", "note": "Both files are identified."}
+{"id": "v1-filesystem-03-c", "label": "unnecessary", "note": "Same search."}
+{"id": "v1-filesystem-03-d", "label": "unnecessary", "note": "Far broader than needed."}
+{"id": "v1-filesystem-03-e", "label": "unnecessary", "note": "The relevant line is already known."}
+{"id": "v1-filesystem-04-a", "label": "necessary", "note": "The verification the goal asks for."}
+{"id": "v1-filesystem-04-b", "label": "unnecessary", "note": "Already created."}
+{"id": "v1-filesystem-04-c", "label": "uncertain", "note": "A weaker check than listing the contents."}
+{"id": "v1-filesystem-04-d", "label": "uncertain", "note": "Useful for later comparison, not verification by itself."}
+{"id": "v1-filesystem-04-e", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-filesystem-05-a", "label": "uncertain", "note": "The goal says the headers match; checking is optional."}
+{"id": "v1-filesystem-05-b", "label": "necessary", "note": "The task itself."}
+{"id": "v1-filesystem-05-c", "label": "unnecessary", "note": "Already listed."}
+{"id": "v1-filesystem-05-d", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-filesystem-05-e", "label": "unnecessary", "note": "The file does not exist yet."}
+{"id": "v1-filesystem-06-a", "label": "necessary", "note": "The first half of the goal."}
+{"id": "v1-filesystem-06-b", "label": "unnecessary", "note": "It is not executable yet; this would fail."}
+{"id": "v1-filesystem-06-c", "label": "uncertain", "note": "Reviewing a script before running it is prudent, not required."}
+{"id": "v1-filesystem-06-d", "label": "unnecessary", "note": "Nothing changed."}
+{"id": "v1-filesystem-06-e", "label": "uncertain", "note": "Runs it, but skips making it executable."}
+{"id": "v1-filesystem-07-a", "label": "necessary", "note": "One of the two duplicates."}
+{"id": "v1-filesystem-07-b", "label": "necessary", "note": "The other duplicate."}
+{"id": "v1-filesystem-07-c", "label": "unnecessary", "note": "Same scan."}
+{"id": "v1-filesystem-07-d", "label": "uncertain", "note": "fdupes already compared content byte by byte."}
+{"id": "v1-filesystem-07-e", "label": "unnecessary", "note": "Outside the task."}
+{"id": "v1-filesystem-08-a", "label": "necessary", "note": "Required file."}
+{"id": "v1-filesystem-08-b", "label": "necessary", "note": "Required file."}
+{"id": "v1-filesystem-08-c", "label": "necessary", "note": "Required file."}
+{"id": "v1-filesystem-08-d", "label": "unnecessary", "note": "Directories already exist."}
+{"id": "v1-filesystem-08-e", "label": "uncertain", "note": "A final check, though the commands report success."}
+{"id": "v1-filesystem-09-a", "label": "necessary", "note": "The rotation config is the first suspect."}
+{"id": "v1-filesystem-09-b", "label": "unnecessary", "note": "Same listing."}
+{"id": "v1-filesystem-09-c", "label": "necessary", "note": "Shows what rotation would do and why."}
+{"id": "v1-filesystem-09-d", "label": "unnecessary", "note": "The goal is to diagnose, not to clean up."}
+{"id": "v1-filesystem-09-e", "label": "unnecessary", "note": "Log content says nothing about rotation."}
+{"id": "v1-filesystem-10-a", "label": "necessary", "note": "Confirms the files arrived."}
+{"id": "v1-filesystem-10-b", "label": "uncertain", "note": "Confirms they left; overlaps with checking the target."}
+{"id": "v1-filesystem-10-c", "label": "unnecessary", "note": "Already moved; there is nothing left to match."}
+{"id": "v1-filesystem-10-d", "label": "unnecessary", "note": "Not a PDF."}
+{"id": "v1-filesystem-10-e", "label": "uncertain", "note": "Exit code 0 may be enough confirmation."}
+{"id": "v1-tool_calling-01-a", "label": "necessary", "note": "The email half is still outstanding."}
+{"id": "v1-tool_calling-01-b", "label": "unnecessary", "note": "Would post a duplicate."}
+{"id": "v1-tool_calling-01-c", "label": "unnecessary", "note": "Not requested."}
+{"id": "v1-tool_calling-01-d", "label": "uncertain", "note": "The post already returned ok."}
+{"id": "v1-tool_calling-01-e", "label": "unnecessary", "note": "The address is given."}
+{"id": "v1-tool_calling-02-a", "label": "necessary", "note": "Rome is still missing."}
+{"id": "v1-tool_calling-02-b", "label": "necessary", "note": "Berlin is required and the failure is temporary."}
+{"id": "v1-tool_calling-02-c", "label": "unnecessary", "note": "Already known."}
+{"id": "v1-tool_calling-02-d", "label": "unnecessary", "note": "Not requested."}
+{"id": "v1-tool_calling-02-e", "label": "unnecessary", "note": "Only today was asked."}
+{"id": "v1-tool_calling-03-a", "label": "unnecessary", "note": "Would create a duplicate event."}
+{"id": "v1-tool_calling-03-b", "label": "uncertain", "note": "Creation was already confirmed."}
+{"id": "v1-tool_calling-03-c", "label": "necessary", "note": "The event exists and invitations went out."}
+{"id": "v1-tool_calling-03-d", "label": "unnecessary", "note": "Invitations were already sent."}
+{"id": "v1-tool_calling-03-e", "label": "unnecessary", "note": "Already checked."}
+{"id": "v1-tool_calling-04-a", "label": "necessary", "note": "German is still missing."}
+{"id": "v1-tool_calling-04-b", "label": "unnecessary", "note": "The quota will not reset until tomorrow."}
+{"id": "v1-tool_calling-04-c", "label": "unnecessary", "note": "Already done."}
+{"id": "v1-tool_calling-04-d", "label": "necessary", "note": "French is required and the primary route is blocked."}
+{"id": "v1-tool_calling-04-e", "label": "unnecessary", "note": "Not needed to translate."}
+{"id": "v1-tool_calling-05-a", "label": "uncertain", "note": "More detail than 'status', but could help the customer."}
+{"id": "v1-tool_calling-05-b", "label": "necessary", "note": "Telling the customer is the goal."}
+{"id": "v1-tool_calling-05-c", "label": "unnecessary", "note": "Already fetched."}
+{"id": "v1-tool_calling-05-d", "label": "unnecessary", "note": "A different order."}
+{"id": "v1-tool_calling-05-e", "label": "uncertain", "note": "Needed only if the messaging tool cannot address the customer by id."}
+{"id": "v1-tool_calling-06-a", "label": "unnecessary", "note": "Same invalid argument."}
+{"id": "v1-tool_calling-06-b", "label": "necessary", "note": "Fixes the argument."}
+{"id": "v1-tool_calling-06-c", "label": "uncertain", "note": "The error already states the limit."}
+{"id": "v1-tool_calling-06-d", "label": "unnecessary", "note": "Nothing has been generated yet."}
+{"id": "v1-tool_calling-06-e", "label": "unnecessary", "note": "Wrong URL."}
+{"id": "v1-tool_calling-07-a", "label": "necessary", "note": "Four results are unseen; one may be cheaper."}
+{"id": "v1-tool_calling-07-b", "label": "uncertain", "note": "Cheapest so far, but not of all results."}
+{"id": "v1-tool_calling-07-c", "label": "unnecessary", "note": "Same first page."}
+{"id": "v1-tool_calling-07-d", "label": "unnecessary", "note": "Only direct flights qualify."}
+{"id": "v1-tool_calling-07-e", "label": "unnecessary", "note": "Wrong date."}
+{"id": "v1-tool_calling-08-a", "label": "uncertain", "note": "One ticket's body; the batch call covers all of them."}
+{"id": "v1-tool_calling-08-b", "label": "unnecessary", "note": "Same list."}
+{"id": "v1-tool_calling-08-c", "label": "unnecessary", "note": "Only 20 were asked for."}
+{"id": "v1-tool_calling-08-d", "label": "necessary", "note": "A useful summary needs more than the titles."}
+{"id": "v1-tool_calling-08-e", "label": "uncertain", "note": "Titles might be enough for a rough summary."}
+{"id": "v1-tool_calling-09-a", "label": "necessary", "note": "The job was still running."}
+{"id": "v1-tool_calling-09-b", "label": "unnecessary", "note": "Would start a duplicate job."}
+{"id": "v1-tool_calling-09-c", "label": "unnecessary", "note": "There is no transcript yet."}
+{"id": "v1-tool_calling-09-d", "label": "unnecessary", "note": "The address is given."}
+{"id": "v1-tool_calling-09-e", "label": "unnecessary", "note": "Nothing is wrong with it."}
+{"id": "v1-tool_calling-10-a", "label": "necessary", "note": "Available, so the goal says register."}
+{"id": "v1-tool_calling-10-b", "label": "unnecessary", "note": "Already checked."}
+{"id": "v1-tool_calling-10-c", "label": "unnecessary", "note": "A different domain."}
+{"id": "v1-tool_calling-10-d", "label": "uncertain", "note": "Registers it too; the add-on was not requested."}
+{"id": "v1-tool_calling-10-e", "label": "unnecessary", "note": "Availability is already known."}

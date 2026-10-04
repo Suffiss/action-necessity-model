@@ -116,6 +116,21 @@ def test_full_workflow_produces_grouped_gold_split(workspace: Path, capsys: pyte
     assert "disputed (need adjudication): 1" in capsys.readouterr().out
 
 
+def test_pilot_export_and_import_of_a_subset(workspace: Path) -> None:
+    pilot_list = workspace / "pilot.txt"
+    pilot_list.write_text("# pilot\nc2\n", encoding="utf-8")
+    sheet, filled = workspace / "pilot.csv", workspace / "pilot-filled.csv"
+    assert labeling.main(["export", "--out", str(sheet), "--contexts", str(pilot_list)]) == 0
+    _fill(sheet, filled, {"c2-a": "u"})
+    rows = import_sheet(filled, [c["id"] for c in load_cases()])
+    assert rows == [{"id": "c2-a", "label": "unnecessary", "note": ""}]
+
+
+def test_unknown_pilot_context_is_rejected(workspace: Path) -> None:
+    with pytest.raises(ValueError):
+        labeling.select_contexts(load_cases(), ["nope"])
+
+
 def test_author_labels_are_excluded_from_gold(workspace: Path) -> None:
     labels_dir = labeling.LABELS_DIR
     labels_dir.mkdir()

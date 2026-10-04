@@ -1,0 +1,81 @@
+# Benchmark v1: independently labelled cases
+
+v0 (`benchmarks/dataset.jsonl` and `holdout.jsonl`) was written *and*
+labelled by the gate's author. v1 removes that bias from the reference
+labels: the author writes the cases, and **independent annotators** decide the
+answers.
+
+## Contents
+
+| File | What it is | Who may look |
+|---|---|---|
+| `cases.jsonl` | 300 cases: 60 scenarios (10 per category) × 5 candidate next actions. No labels. | Everyone |
+| `pilot.txt` | 6 scenarios (30 cases), one per category, all from the dev split | Coordinator |
+| `labels/author.jsonl` | The case writer's own labels and reasons | **Not annotators** (bias analysis only) |
+| `labels/<annotator>.jsonl` | One file per independent annotator, created by `import` | Coordinator, after labeling ends |
+| `adjudication.jsonl` | Agreed outcomes for disputed cases (created when needed) | Coordinator |
+| `gold-dev.jsonl` / `gold-test.jsonl` | Gold sets built by `gold`, in the benchmark runner's format | See the protocol |
+
+Categories: coding, research, browser, database, filesystem, tool calling.
+
+**Why 5 candidates per scenario?** Each scenario's history is shared, and its
+candidates mix needed steps, repeats, scope creep and judgement calls. This
+mirrors the real decision: among the things the agent *could* do next, which
+are worth doing?
+
+## Protocol
+
+| # | Step | Command / output |
+|---|---|---|
+| 1 | **Pilot.** Two annotators label the 30 pilot cases, following [docs/labeling-guide.md](../../docs/labeling-guide.md). | `python -m benchmarks.labeling export --contexts benchmarks/v1/pilot.txt --out pilot.csv` |
+| 2 | **Review the pilot.** Import both sheets, check agreement, and discuss disagreements. Revise the guide if the disagreements reveal an unclear rule rather than a genuinely ambiguous case. | `agree --show-disagreements` |
+| 3 | **Full labeling.** The same (or new) annotators label all 300 cases independently. | `export --out sheet.csv`, then `import filled.csv --annotator NAME` |
+| 4 | **Agreement.** Report pairwise Cohen's kappa. Below 0.4 ("fair" or worse), the task definition itself needs work before any gate results mean much. | `agree` |
+| 5 | **Adjudication.** Resolve cases where annotators split `necessary` vs `unnecessary` by discussion. Record outcomes in `adjudication.jsonl`. | |
+| 6 | **Gold.** Build the gold sets. Scenarios are split 40% dev / 60% test by a fixed hash of `context_id`, so no scenario straddles the split. | `gold` |
+| 7 | **Freeze test.** `gold-test.jsonl` is evaluated **once per evaluator version**. Never tune on it. Every run is appended to `benchmarks/RESULTS.md`. | `python -m benchmarks.runner benchmarks/v1/gold-test.jsonl` |
+
+The pilot scenarios were chosen from the dev split on purpose. Discussing them
+in step 2 makes them non-independent, which is acceptable for dev and not for
+test.
+
+## Measuring author bias
+
+`agree` includes `author` alongside the annotators.
+
+- **Author-vs-annotator agreement clearly below annotator-vs-annotator
+  agreement** means the author's (and so the gate's) idea of "necessary"
+  differs from other people's. That is a key finding.
+- **Systematic patterns in the gap** (for example, the author marks more
+  actions `unnecessary`) point to which gate rules are likely too aggressive.
+
+## How much can v1 show?
+
+The primary safety metric is the false unnecessary rate on truly necessary
+actions. With zero observed false blocks among *n* necessary cases, the exact
+one-sided 95% upper bound is `1 − 0.05^(1/n)`:
+
+| Necessary cases in test | 95% upper bound |
+|---|---|
+| 41 (the author's count for this test split) | 7.0% |
+| 60 | 4.9% |
+| 100 | 3.0% |
+| 150 | 2.0% |
+
+Even with perfect results, v1 cannot demonstrate the "< 3% false blocking"
+target. That needs at least about 100 necessary cases in the frozen test set,
+roughly twice v1's size. v1's job is to establish whether people agree on the
+task at all, how far the author's judgement drifts from theirs, and a first
+unbiased estimate. Growing the test set comes after the pilot has validated
+the guide.
+
+## Label distribution (author's labels; for planning only)
+
+| Label | Cases |
+|---|---|
+| necessary | 75 |
+| unnecessary | 159 |
+| uncertain | 66 |
+
+These are the author's labels, so they are not a result. Gold labels may
+differ substantially.
