@@ -148,3 +148,53 @@
 {"id": "v1-browser-10-c", "label": "unnecessary", "note": "The status page is the source."}
 {"id": "v1-browser-10-d", "label": "uncertain", "note": "May list scheduled maintenance."}
 {"id": "v1-browser-10-e", "label": "unnecessary", "note": "Not where maintenance is announced."}
+{"id": "v1-database-01-a", "label": "necessary", "note": "Revenue is still unknown."}
+{"id": "v1-database-01-b", "label": "uncertain", "note": "Derivable from revenue and count, though a direct query is reasonable."}
+{"id": "v1-database-01-c", "label": "unnecessary", "note": "Count already known."}
+{"id": "v1-database-01-d", "label": "unnecessary", "note": "Aggregates do not need every row."}
+{"id": "v1-database-01-e", "label": "uncertain", "note": "Confirms the amount column exists; the count query only proved the table does."}
+{"id": "v1-database-02-a", "label": "necessary", "note": "Shows whether the job ran twice or retried."}
+{"id": "v1-database-02-b", "label": "unnecessary", "note": "Same query, nothing changed."}
+{"id": "v1-database-02-c", "label": "unnecessary", "note": "Already described."}
+{"id": "v1-database-02-d", "label": "unnecessary", "note": "The goal is to find the cause, not to clean up."}
+{"id": "v1-database-02-e", "label": "necessary", "note": "The insert logic is where duplicates would come from."}
+{"id": "v1-database-03-a", "label": "necessary", "note": "Existing NULLs would make the constraint fail."}
+{"id": "v1-database-03-b", "label": "uncertain", "note": "The goal's main step, but running it before checking for NULLs is not 'safe'."}
+{"id": "v1-database-03-c", "label": "unnecessary", "note": "Already described."}
+{"id": "v1-database-03-d", "label": "unnecessary", "note": "A count answers the question."}
+{"id": "v1-database-03-e", "label": "uncertain", "note": "Prudent, though not strictly required."}
+{"id": "v1-database-04-a", "label": "necessary", "note": "The counts are in hand."}
+{"id": "v1-database-04-b", "label": "unnecessary", "note": "Same query."}
+{"id": "v1-database-04-c", "label": "unnecessary", "note": "Not what was asked."}
+{"id": "v1-database-04-d", "label": "unnecessary", "note": "The query already worked."}
+{"id": "v1-database-04-e", "label": "uncertain", "note": "Checks that 'active' is the right status value; defensible but optional."}
+{"id": "v1-database-05-a", "label": "necessary", "note": "The backfill needs to know the shipments columns."}
+{"id": "v1-database-05-b", "label": "uncertain", "note": "The main remaining step, but it assumes the shipments columns."}
+{"id": "v1-database-05-c", "label": "unnecessary", "note": "Already applied; it would only error."}
+{"id": "v1-database-05-d", "label": "uncertain", "note": "The ALTER output already confirms the column."}
+{"id": "v1-database-05-e", "label": "unnecessary", "note": "Not needed for the backfill."}
+{"id": "v1-database-06-a", "label": "uncertain", "note": "Fixes future measurement, but holds no data for the past 24 hours."}
+{"id": "v1-database-06-b", "label": "unnecessary", "note": "Will fail the same way."}
+{"id": "v1-database-06-c", "label": "necessary", "note": "The slow-query log is the remaining source for past queries."}
+{"id": "v1-database-06-d", "label": "uncertain", "note": "Only shows what is running now."}
+{"id": "v1-database-06-e", "label": "uncertain", "note": "Tells whether the log will contain slow queries."}
+{"id": "v1-database-07-a", "label": "necessary", "note": "The goal explicitly asks to confirm none remain."}
+{"id": "v1-database-07-b", "label": "unnecessary", "note": "Already done."}
+{"id": "v1-database-07-c", "label": "unnecessary", "note": "A count confirms it."}
+{"id": "v1-database-07-d", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-database-07-e", "label": "uncertain", "note": "'DELETE 17' matches the count, but the goal asks for explicit confirmation."}
+{"id": "v1-database-08-a", "label": "necessary", "note": "The query that answers the goal."}
+{"id": "v1-database-08-b", "label": "unnecessary", "note": "Already described."}
+{"id": "v1-database-08-c", "label": "uncertain", "note": "Confirms Germany is stored as 'DE'."}
+{"id": "v1-database-08-d", "label": "unnecessary", "note": "Far broader than needed."}
+{"id": "v1-database-08-e", "label": "unnecessary", "note": "Not part of the answer."}
+{"id": "v1-database-09-a", "label": "necessary", "note": "Needed to compare with the primary."}
+{"id": "v1-database-09-b", "label": "unnecessary", "note": "Only useful once there is something to compare it with."}
+{"id": "v1-database-09-c", "label": "necessary", "note": "Gives the lag in time directly."}
+{"id": "v1-database-09-d", "label": "unnecessary", "note": "Disruptive, and diagnosis comes first."}
+{"id": "v1-database-09-e", "label": "unnecessary", "note": "Unrelated to lag."}
+{"id": "v1-database-10-a", "label": "necessary", "note": "The deliverable."}
+{"id": "v1-database-10-b", "label": "unnecessary", "note": "Rows already fetched."}
+{"id": "v1-database-10-c", "label": "unnecessary", "note": "Broader than needed."}
+{"id": "v1-database-10-d", "label": "uncertain", "note": "Avoids a write error, but is often unnecessary."}
+{"id": "v1-database-10-e", "label": "uncertain", "note": "Negative stock may or may not count as 'zero stock'."}
