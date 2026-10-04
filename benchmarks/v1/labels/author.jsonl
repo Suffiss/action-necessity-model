@@ -248,3 +248,53 @@
 {"id": "v1-filesystem-10-c", "label": "unnecessary", "note": "Already moved; there is nothing left to match."}
 {"id": "v1-filesystem-10-d", "label": "unnecessary", "note": "Not a PDF."}
 {"id": "v1-filesystem-10-e", "label": "uncertain", "note": "Exit code 0 may be enough confirmation."}
+{"id": "v1-tool_calling-01-a", "label": "necessary", "note": "The email half is still outstanding."}
+{"id": "v1-tool_calling-01-b", "label": "unnecessary", "note": "Would post a duplicate."}
+{"id": "v1-tool_calling-01-c", "label": "unnecessary", "note": "Not requested."}
+{"id": "v1-tool_calling-01-d", "label": "uncertain", "note": "The post already returned ok."}
+{"id": "v1-tool_calling-01-e", "label": "unnecessary", "note": "The address is given."}
+{"id": "v1-tool_calling-02-a", "label": "necessary", "note": "Rome is still missing."}
+{"id": "v1-tool_calling-02-b", "label": "necessary", "note": "Berlin is required and the failure is temporary."}
+{"id": "v1-tool_calling-02-c", "label": "unnecessary", "note": "Already known."}
+{"id": "v1-tool_calling-02-d", "label": "unnecessary", "note": "Not requested."}
+{"id": "v1-tool_calling-02-e", "label": "unnecessary", "note": "Only today was asked."}
+{"id": "v1-tool_calling-03-a", "label": "unnecessary", "note": "Would create a duplicate event."}
+{"id": "v1-tool_calling-03-b", "label": "uncertain", "note": "Creation was already confirmed."}
+{"id": "v1-tool_calling-03-c", "label": "necessary", "note": "The event exists and invitations went out."}
+{"id": "v1-tool_calling-03-d", "label": "unnecessary", "note": "Invitations were already sent."}
+{"id": "v1-tool_calling-03-e", "label": "unnecessary", "note": "Already checked."}
+{"id": "v1-tool_calling-04-a", "label": "necessary", "note": "German is still missing."}
+{"id": "v1-tool_calling-04-b", "label": "unnecessary", "note": "The quota will not reset until tomorrow."}
+{"id": "v1-tool_calling-04-c", "label": "unnecessary", "note": "Already done."}
+{"id": "v1-tool_calling-04-d", "label": "necessary", "note": "French is required and the primary route is blocked."}
+{"id": "v1-tool_calling-04-e", "label": "unnecessary", "note": "Not needed to translate."}
+{"id": "v1-tool_calling-05-a", "label": "uncertain", "note": "More detail than 'status', but could help the customer."}
+{"id": "v1-tool_calling-05-b", "label": "necessary", "note": "Telling the customer is the goal."}
+{"id": "v1-tool_calling-05-c", "label": "unnecessary", "note": "Already fetched."}
+{"id": "v1-tool_calling-05-d", "label": "unnecessary", "note": "A different order."}
+{"id": "v1-tool_calling-05-e", "label": "uncertain", "note": "Needed only if the messaging tool cannot address the customer by id."}
+{"id": "v1-tool_calling-06-a", "label": "unnecessary", "note": "Same invalid argument."}
+{"id": "v1-tool_calling-06-b", "label": "necessary", "note": "Fixes the argument."}
+{"id": "v1-tool_calling-06-c", "label": "uncertain", "note": "The error already states the limit."}
+{"id": "v1-tool_calling-06-d", "label": "unnecessary", "note": "Nothing has been generated yet."}
+{"id": "v1-tool_calling-06-e", "label": "unnecessary", "note": "Wrong URL."}
+{"id": "v1-tool_calling-07-a", "label": "necessary", "note": "Four results are unseen; one may be cheaper."}
+{"id": "v1-tool_calling-07-b", "label": "uncertain", "note": "Cheapest so far, but not of all results."}
+{"id": "v1-tool_calling-07-c", "label": "unnecessary", "note": "Same first page."}
+{"id": "v1-tool_calling-07-d", "label": "unnecessary", "note": "Only direct flights qualify."}
+{"id": "v1-tool_calling-07-e", "label": "unnecessary", "note": "Wrong date."}
+{"id": "v1-tool_calling-08-a", "label": "uncertain", "note": "One ticket's body; the batch call covers all of them."}
+{"id": "v1-tool_calling-08-b", "label": "unnecessary", "note": "Same list."}
+{"id": "v1-tool_calling-08-c", "label": "unnecessary", "note": "Only 20 were asked for."}
+{"id": "v1-tool_calling-08-d", "label": "necessary", "note": "A useful summary needs more than the titles."}
+{"id": "v1-tool_calling-08-e", "label": "uncertain", "note": "Titles might be enough for a rough summary."}
+{"id": "v1-tool_calling-09-a", "label": "necessary", "note": "The job was still running."}
+{"id": "v1-tool_calling-09-b", "label": "unnecessary", "note": "Would start a duplicate job."}
+{"id": "v1-tool_calling-09-c", "label": "unnecessary", "note": "There is no transcript yet."}
+{"id": "v1-tool_calling-09-d", "label": "unnecessary", "note": "The address is given."}
+{"id": "v1-tool_calling-09-e", "label": "unnecessary", "note": "Nothing is wrong with it."}
+{"id": "v1-tool_calling-10-a", "label": "necessary", "note": "Available, so the goal says register."}
+{"id": "v1-tool_calling-10-b", "label": "unnecessary", "note": "Already checked."}
+{"id": "v1-tool_calling-10-c", "label": "unnecessary", "note": "A different domain."}
+{"id": "v1-tool_calling-10-d", "label": "uncertain", "note": "Registers it too; the add-on was not requested."}
+{"id": "v1-tool_calling-10-e", "label": "unnecessary", "note": "Availability is already known."}
