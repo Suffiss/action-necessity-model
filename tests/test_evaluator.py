@@ -109,3 +109,12 @@ def test_evaluation_is_deterministic() -> None:
         "proposed_action": read("README.md"),
     }
     assert evaluate_action(context) == evaluate_action(context)
+
+
+def test_relevance_counts_the_goal_clause_the_action_serves() -> None:
+    decision = judge(
+        "Archive the stale support tickets and export the quarterly report",
+        act("browser", "navigate", "Open the export page", url="https://crm.example.com/export"),
+    )
+    assert decision.signals.goal_relevance >= 0.3
+    assert decision.decision is not Decision.UNNECESSARY

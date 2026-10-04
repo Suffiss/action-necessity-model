@@ -87,7 +87,7 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
     proposed = context.proposed_action
     match = _find_match(prep, similarity, duplicate_threshold)
     verify_from = _last_mutation(prep, strict=True)
-    relevance, disjoint = _relevance(prep.goal_stems, prep.action_stems)
+    relevance, disjoint = _relevance(context.goal, prep.goal_stems, prep.action_stems)
     return Features(
         kind=prep.kind,
         mutating=is_mutating(proposed, prep.kind),
@@ -168,8 +168,14 @@ def _find_match(prep: _Prepared, similarity: SimilarityProvider, threshold: floa
     )
 
 
-def _relevance(goal: frozenset[str], action: frozenset[str]) -> tuple[float, bool]:
-    token_score = overlap_coefficient(set(goal), set(action))
+def _relevance(goal_text: str, goal: frozenset[str], action: frozenset[str]) -> tuple[float, bool]:
+    """Relevance to the whole goal or to its best-matching clause.
+
+    An action only has to serve one part of a multi-part goal ("log in and
+    download the invoice"), so diluting it across every clause undercounts it.
+    """
+    clauses = [goal] + [frozenset(content_stems(part)) for part in _MULTI_CLAUSE.split(goal_text)]
+    token_score = max(overlap_coefficient(set(clause), set(action)) for clause in clauses)
     goal_concepts, action_concepts = concepts_of(goal), concepts_of(action)
     concept_score = overlap_coefficient(goal_concepts, action_concepts)
     disjoint = bool(goal_concepts and action_concepts) and concept_score == 0.0 and token_score == 0.0
