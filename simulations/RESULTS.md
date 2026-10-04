@@ -290,7 +290,7 @@ regressed `debug-import-crash`: the essential code edit lost the relevance it
 inherits from a file the agent found, became `uncertain`, and was skipped. The
 skip-policy total moved from 39 → 22 to 39 → 20.
 
-Fixed in the next commit: writes to a surfaced lead are again supported, now
+Fixed in `8ea9130`: writes to a surfaced lead are again supported, now
 labelled `DIRECT_GOAL_DEPENDENCY`. The numbers are back to Run 1 under both
 policies, and every reason code is correct.
 
