@@ -1,0 +1,51 @@
+name: labeling page
+
+# Publishes the standalone v1 labeling page to GitHub Pages whenever the cases
+# or the page change on main. The page embeds cases only, never labels.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/v1/cases.jsonl"
+      - "benchmarks/v1/pilot.txt"
+      - "benchmarks/labeler/**"
+      - "benchmarks/labeling.py"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest -q
+      - run: python -m benchmarks.labeler.build --dist _site
+      # Only the standalone page is published; the artifact variant needs the claude.ai host.
+      - run: rm _site/labeler.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -33,7 +33,9 @@ There are two ways to label, and both produce the same `labels/<annotator>.jsonl
   - Each annotator's answers save automatically to a private database document that only the owner can read. Annotators must be invited by email with edit access.
   - The coordinator exports those documents to JSON and runs `python -m benchmarks.labeling import-web <files>`.
   - Anyone who cannot save to the database gets a CSV export button instead.
-- **As a static page** (`dist/index.html`, for example on GitHub Pages): answers stay in the annotator's browser and are exported as CSV.
+- **As a static page** (`dist/index.html`): answers stay in the annotator's browser and are exported as CSV.
+  - A copy is published automatically to GitHub Pages: **https://suffiss.github.io/action-necessity-model/**. It needs no account.
+  - The `labeling page` workflow rebuilds the page after the test suite passes, whenever cases or the page change on `main`.
 
 **2. CSV sheet.** `export` writes a spreadsheet; annotators fill in the `label` column and the coordinator runs `import`.
 
