@@ -39,12 +39,13 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--paper); color: var(--ink); font: 19px/1.7 var(--font-body); }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.7 var(--font-body); }
 button, input { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 h1, h2, h3, p { margin: 0; }
 h1, h2 { text-wrap: balance; }
-.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.wrap { max-width: 1280px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 32px; display: grid; gap: 18px; }
+#welcome, #done { width: 100%; max-width: 860px; justify-self: center; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: grid; gap: 14px; }
 .muted { color: var(--muted); }
 .small { font-size: 16px; }
@@ -70,7 +71,15 @@ h1, h2 { text-wrap: balance; }
 .err { color: var(--no); font-weight: 600; min-height: 1.4em; }
 
 /* quiz */
-.topline { display: grid; gap: 8px; }
+.quiz { display: grid; gap: 14px; }
+.qbar { display: grid; gap: 8px; }
+.qbar-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.qbar-nav { margin-left: auto; display: flex; gap: 8px; }
+.nav-btn { min-height: 48px; padding: 6px 16px; border-radius: var(--radius); border: 2px solid var(--accent); background: var(--panel); color: var(--accent); font-size: 18px; font-weight: 600; cursor: pointer; }
+.nav-btn:disabled { opacity: 0.4; cursor: default; }
+.qgrid { display: grid; gap: 16px; }
+.qside { display: grid; gap: 6px; align-content: start; }
+.dock { display: grid; gap: 12px; }
 .count { font-size: 20px; font-weight: 600; }
 .track { height: 12px; background: var(--code-bg); border-radius: 6px; overflow: hidden; }
 .fill { height: 100%; background: var(--accent); width: 0; transition: width 0.3s; }
@@ -99,7 +108,6 @@ h1, h2 { text-wrap: balance; }
 .skip-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
 .skip-row .picked { font-size: 16px; color: var(--muted); }
 .note { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--paper); font-size: 17px; }
-.nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 details.tech { font-size: 15px; color: var(--muted); }
 details.tech summary { cursor: pointer; padding: 4px 0; }
 details.tech pre { margin: 6px 0 0; padding: 10px 12px; background: var(--code-bg); border-radius: 8px; font: 13px/1.5 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow: auto; color: var(--ink); }
@@ -131,12 +139,33 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
 .csv { width: 100%; min-height: 180px; font: 13px/1.4 var(--font-mono); border: 1px solid var(--line); border-radius: 8px; background: var(--code-bg); padding: 8px; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
 
-@media (max-width: 640px) {
+/* Wide screens: situation and question side by side, nothing below the fold.
+   A long situation scrolls inside its own card; the answers never move. */
+@media (min-width: 960px) {
+  main[data-screen="quiz"] { padding-block: 12px; }
+  .quiz { height: calc(100dvh - 24px); grid-template-rows: auto minmax(0, 1fr); }
+  .qgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; min-height: 0; }
+  .situation, .qside { max-height: 100%; overflow: auto; align-content: start; }
+  .ask { gap: 8px; padding: 16px 20px; }
+  .next { font-size: 22px; padding: 10px 14px; }
+  .question { font-size: 21px; }
+  .answer { min-height: 72px; }
+  .note { min-height: 42px; }
+}
+/* Narrow screens: the step, the question and the answers dock to the bottom; only the situation scrolls. */
+@media (max-width: 959px) {
   body { font-size: 18px; }
-  .answers { grid-template-columns: minmax(0, 1fr); }
-  .answer { min-height: 72px; grid-auto-flow: column; justify-content: center; gap: 12px; }
+  .quiz { padding-bottom: var(--dock-h, 260px); }
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; background: var(--panel); border-top: 2px solid var(--accent);
+          box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.14); padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .dock .lead { display: none; }
+  .next { font-size: 19px; padding: 8px 12px; max-height: 6.2em; overflow: auto; }
+  .question { font-size: 19px; }
+  .answers { gap: 8px; }
+  .answer { min-height: 60px; }
+  .answer b { font-size: 21px; }
+  .answer span { display: none; }
   .goal { font-size: 21px; }
-  .next { font-size: 21px; }
 }
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 </style>
@@ -180,15 +209,21 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
   </section>
 
   <!-- =============================================================== quiz -->
-  <section id="quiz" hidden aria-live="polite">
-    <div class="wrap" style="padding:0">
-      <div class="topline">
+  <section id="quiz" class="quiz" hidden aria-live="polite">
+    <header class="qbar">
+      <div class="qbar-top">
         <span class="count" id="count"></span>
-        <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
         <span class="status" id="status"></span>
+        <span class="qbar-nav">
+          <button class="nav-btn" type="button" id="back">← 上一题</button>
+          <button class="nav-btn" type="button" id="forward">下一题 →</button>
+        </span>
       </div>
+      <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    </header>
 
-      <article class="card" aria-labelledby="sit-label">
+    <div class="qgrid">
+      <article class="card situation" aria-labelledby="sit-label">
         <span class="label-chip" id="sit-label">情况</span>
         <p class="small muted">AI 助手的任务：</p>
         <p class="goal" id="goal"></p>
@@ -198,27 +233,27 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
         <details class="tech"><summary>原始记录（给懂电脑的人看）</summary><pre id="tech-context"></pre></details>
       </article>
 
-      <article class="card ask" aria-labelledby="question">
-        <p class="same" id="same"></p>
-        <p class="small muted">现在，AI 助手想做的<b>下一步</b>是：</p>
-        <p class="next" id="next"></p>
-        <details class="tech"><summary>原始写法（给懂电脑的人看）</summary><pre id="tech-next"></pre></details>
-        <p class="question" id="question">这一步有必要吗？</p>
-        <div class="answers" id="answers"></div>
-        <div class="skip-row">
-          <button class="link-btn" type="button" id="skip">这一题我看不懂，跳过</button>
-          <span class="picked" id="picked"></span>
+      <div class="qside">
+        <article class="card ask" aria-labelledby="question">
+          <p class="same" id="same"></p>
+          <!-- On phones this block docks to the bottom of the screen, so the step and its answers are always in view together. -->
+          <div class="dock" id="dock">
+            <p class="small muted lead">现在，AI 助手想做的<b>下一步</b>是：</p>
+            <p class="next" id="next"></p>
+            <p class="question" id="question">这一步有必要吗？</p>
+            <div class="answers" id="answers"></div>
+          </div>
+          <div class="skip-row">
+            <button class="link-btn" type="button" id="skip">这一题我看不懂，跳过</button>
+            <span class="picked" id="picked"></span>
+          </div>
+          <input class="note" id="note" maxlength="300" placeholder="想补充一句理由吗？（可以不填）" aria-label="补充理由（可以不填）">
+          <details class="tech"><summary>原始写法（给懂电脑的人看）</summary><pre id="tech-next"></pre></details>
+        </article>
+        <div class="row qlinks">
+          <button class="link-btn" type="button" id="open-guide">怎么判断？看说明</button>
+          <button class="link-btn" type="button" id="finish-early">先做到这里，看答案码</button>
         </div>
-        <input class="note" id="note" maxlength="300" placeholder="想补充一句理由吗？（可以不填）" aria-label="补充理由（可以不填）">
-      </article>
-
-      <div class="nav">
-        <button class="big-btn secondary" type="button" id="back">← 上一题</button>
-        <button class="big-btn secondary" type="button" id="forward">下一题 →</button>
-      </div>
-      <div class="row" style="justify-content:space-between">
-        <button class="link-btn" type="button" id="open-guide">怎么判断？看说明</button>
-        <button class="link-btn" type="button" id="finish-early">先做到这里，看答案码</button>
       </div>
     </div>
   </section>
@@ -682,6 +717,7 @@ function savedGuideLang() {
 function route() {
   const screen = !state.started ? "welcome" : state.finished ? "done" : "quiz";
   for (const id of ["welcome", "quiz", "done"]) $(id).hidden = id !== screen;
+  document.querySelector("main").dataset.screen = screen;
   if (screen === "welcome") renderWelcome();
   if (screen === "quiz") renderQuiz();
   if (screen === "done") renderDone();
@@ -695,6 +731,15 @@ function onKey(event) {
   if (key === "0") { event.preventDefault(); choose(SKIP); return; }
   if (key === "arrowleft") { event.preventDefault(); goBack(); }
   if (key === "arrowright" && !$("forward").disabled) { event.preventDefault(); goForward(); }
+}
+
+// Keep the content above the docked answers on narrow screens.
+function trackDockHeight() {
+  const dock = $("dock");
+  const apply = () => document.documentElement.style.setProperty("--dock-h", (dock.offsetHeight + 24) + "px");
+  if (window.ResizeObserver) new ResizeObserver(apply).observe(dock);
+  window.addEventListener("resize", apply);
+  apply();
 }
 
 // ------------------------------------------------------------------- boot
@@ -718,6 +763,7 @@ $("open-guide").addEventListener("click", () => $("guide").showModal());
 document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
 document.querySelectorAll("#guide [data-lang-btn]").forEach((btn) => btn.addEventListener("click", () => setGuideLang(btn.dataset.langBtn)));
 document.addEventListener("keydown", onKey);
+trackDockHeight();
 setGuideLang(savedGuideLang());
 setStatus("local");
 route();
