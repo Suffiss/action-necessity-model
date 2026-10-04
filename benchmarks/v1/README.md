@@ -23,6 +23,20 @@ candidates mix needed steps, repeats, scope creep and judgement calls. This
 mirrors the real decision: among the things the agent *could* do next, which
 are worth doing?
 
+## Labeling tools
+
+There are two ways to label, and both produce the same `labels/<annotator>.jsonl`.
+
+**1. Web page (recommended).** Build it with `python -m benchmarks.labeler.build`.
+- **What annotators see:** one scenario at a time with its five candidates, keyboard labeling (`N` / `U` / `?`), and a progress bar. The page never contains anyone's labels.
+- **As a claude.ai artifact** (`dist/labeler.html`):
+  - Each annotator's answers save automatically to a private database document that only the owner can read. Annotators must be invited by email with edit access.
+  - The coordinator exports those documents to JSON and runs `python -m benchmarks.labeling import-web <files>`.
+  - Anyone who cannot save to the database gets a CSV export button instead.
+- **As a static page** (`dist/index.html`, for example on GitHub Pages): answers stay in the annotator's browser and are exported as CSV.
+
+**2. CSV sheet.** `export` writes a spreadsheet; annotators fill in the `label` column and the coordinator runs `import`.
+
 ## Protocol
 
 | # | Step | Command / output |
