@@ -166,3 +166,29 @@ def test_rereading_a_lead_already_followed_is_still_duplicate() -> None:
         ],
     )
     assert decision.decision is Decision.UNNECESSARY
+
+
+def test_rereading_a_log_full_of_errors_is_a_duplicate_not_a_retry() -> None:
+    log = "2026-10-01 ERROR db pool exhausted
+Traceback (most recent call last): ..."
+    decision = judge("Find why the worker keeps restarting", read("logs/worker.log"), history=[rec(read("logs/worker.log"), log)])
+    assert decision.decision is Decision.UNNECESSARY
+    assert decision.reason_code is ReasonCode.DUPLICATE_ACTION
+
+
+def test_a_write_is_never_labelled_a_prerequisite_read() -> None:
+    decision = judge(
+        "Remove inactive sessions from the sessions table",
+        act("db_query", "sql", "Delete inactive sessions", query="DELETE FROM sessions WHERE active = false"),
+        history=[rec(act("db_query", "sql", "Count inactive", query="SELECT COUNT(*) FROM sessions WHERE active = false"), "count: 9")],
+    )
+    assert decision.reason_code is not ReasonCode.PREREQUISITE_ACTION
+
+
+def test_editing_a_file_surfaced_by_search_is_not_information_gathering() -> None:
+    decision = judge(
+        "Fix the crash on empty input",
+        act("file_edit", "edit_file", "Guard against empty input", path="core/parse.py", old="x[0]", new="x[0] if x else None"),
+        history=[rec(act("search", "grep", "Search for IndexError", query="IndexError"), "core/parse.py:12: IndexError")],
+    )
+    assert decision.reason_code is not ReasonCode.NEW_INFORMATION_REQUIRED
