@@ -6,6 +6,7 @@ from suffiss.necessity.rules import (
     ResultStatus,
     classify_action,
     classify_result,
+    has_visible_payload,
     is_doc_path,
     is_mutating,
     is_truncated,
@@ -96,3 +97,11 @@ def test_is_truncated(result: str, expected: bool) -> None:
 )
 def test_mentions_target(result: str, target: str, expected: bool) -> None:
     assert mentions_target(result, target) is expected
+
+
+@pytest.mark.parametrize(
+    ("arguments", "expected"),
+    [({"path": "a.py"}, False), ({"path": "a.py", "timeout": 5}, False), ({"title": "Bug"}, True), ({"selector": "#send"}, True)],
+)
+def test_has_visible_payload(arguments: dict, expected: bool) -> None:
+    assert has_visible_payload(Action("write", "tool", arguments=arguments)) is expected

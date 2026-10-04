@@ -14,7 +14,7 @@ from typing import Any, Iterable
 
 from suffiss.necessity import lexicon
 from suffiss.necessity.models import Action
-from suffiss.necessity.similarity import normalize_path, tokenize
+from suffiss.necessity.similarity import normalize_arguments, normalize_path, tokenize
 
 
 class ActionKind(StrEnum):
@@ -126,6 +126,15 @@ def is_mutating(action: Action, kind: ActionKind | None = None) -> bool:
 def is_test_run(action: Action) -> bool:
     text = f"{action.description} {' '.join(_flatten(action.arguments.values()))}"
     return bool(set(tokenize(text)) & lexicon.TEST_COMMAND_WORDS)
+
+
+_FILE_KEYS = frozenset({"path", "file", "file_path", "filepath", "filename"})
+
+
+def has_visible_payload(action: Action) -> bool:
+    """Whether the arguments carry more than a file location (e.g. a title or message)."""
+    keys = set(normalize_arguments(action.arguments))
+    return bool(keys - _FILE_KEYS)
 
 
 def target_of(action: Action) -> str | None:

@@ -126,9 +126,10 @@ def _repeat_penalties(f: Features, w: ScoringWeights) -> list[Contribution]:
         return [Contribution(ReasonCode.UNCHANGED_RETRY, -w.transient_retry * min(match.repeat_count, 3))]
     if match.status is ResultStatus.PENDING:
         return []
-    # Writes often carry their payload outside the arguments we see, so an
-    # "identical" write is weaker evidence of redundancy than an identical read.
-    scale = 0.5 if f.mutating else 1.0
+    # A write identified only by its file (edit_file(path)) usually carries its
+    # real payload elsewhere, so matching arguments are weak evidence of a
+    # repeat. Writes whose arguments include the payload get the full penalty.
+    scale = 0.5 if f.mutating and not f.payload_visible else 1.0
     reason = ReasonCode.REDUNDANT_VERIFICATION if match.after_target_mutation else ReasonCode.DUPLICATE_ACTION
     return [Contribution(reason, -w.duplicate * match.similarity * scale)]
 

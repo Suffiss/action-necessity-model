@@ -18,6 +18,7 @@ from suffiss.necessity.rules import (
     action_text,
     classify_action,
     classify_result,
+    has_visible_payload,
     concepts_of,
     content_stems,
     is_broad_action,
@@ -59,6 +60,7 @@ class HistoryMatch:
 class Features:
     kind: ActionKind
     mutating: bool
+    payload_visible: bool
     context_sufficient: bool
     relevance: float
     concepts_disjoint: bool
@@ -95,6 +97,7 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
     return Features(
         kind=prep.kind,
         mutating=is_mutating(proposed, prep.kind),
+        payload_visible=has_visible_payload(proposed),
         context_sufficient=bool(prep.goal_stems) and bool(prep.action_stems),
         relevance=relevance,
         concepts_disjoint=disjoint,
