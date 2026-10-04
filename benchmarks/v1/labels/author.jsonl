@@ -98,3 +98,53 @@
 {"id": "v1-research-10-c", "label": "uncertain", "note": "Could locate the filing, but a summary is not the filing."}
 {"id": "v1-research-10-d", "label": "unnecessary", "note": "Wrong period."}
 {"id": "v1-research-10-e", "label": "unnecessary", "note": "A total was not asked for."}
+{"id": "v1-browser-01-a", "label": "necessary", "note": "The goal's final step."}
+{"id": "v1-browser-01-b", "label": "unnecessary", "note": "Wrong month."}
+{"id": "v1-browser-01-c", "label": "unnecessary", "note": "Already open, nothing changed."}
+{"id": "v1-browser-01-d", "label": "unnecessary", "note": "Unrelated page."}
+{"id": "v1-browser-01-e", "label": "uncertain", "note": "An alternative route to the PDF."}
+{"id": "v1-browser-02-a", "label": "necessary", "note": "A required field still empty."}
+{"id": "v1-browser-02-b", "label": "necessary", "note": "A required field still empty."}
+{"id": "v1-browser-02-c", "label": "unnecessary", "note": "Already filled."}
+{"id": "v1-browser-02-d", "label": "unnecessary", "note": "Already read; details known."}
+{"id": "v1-browser-02-e", "label": "uncertain", "note": "Optional field; the resume has no cover letter."}
+{"id": "v1-browser-03-a", "label": "necessary", "note": "The price is on the page already loaded."}
+{"id": "v1-browser-03-b", "label": "unnecessary", "note": "Already loaded."}
+{"id": "v1-browser-03-c", "label": "unnecessary", "note": "The price is already known."}
+{"id": "v1-browser-03-d", "label": "unnecessary", "note": "Different plan."}
+{"id": "v1-browser-03-e", "label": "unnecessary", "note": "Not needed to report a price."}
+{"id": "v1-browser-04-a", "label": "necessary", "note": "Reloading shows whether the new address actually persisted."}
+{"id": "v1-browser-04-b", "label": "unnecessary", "note": "Already saved."}
+{"id": "v1-browser-04-c", "label": "unnecessary", "note": "Already entered and saved."}
+{"id": "v1-browser-04-d", "label": "uncertain", "note": "Verification may be part of 'saved', but the goal does not mention it."}
+{"id": "v1-browser-04-e", "label": "uncertain", "note": "The save message may or may not count as confirmation."}
+{"id": "v1-browser-05-a", "label": "necessary", "note": "The third page is still missing."}
+{"id": "v1-browser-05-b", "label": "unnecessary", "note": "Already collected."}
+{"id": "v1-browser-05-c", "label": "unnecessary", "note": "Beyond the three pages asked for."}
+{"id": "v1-browser-05-d", "label": "unnecessary", "note": "Already collected."}
+{"id": "v1-browser-05-e", "label": "unnecessary", "note": "Titles are enough."}
+{"id": "v1-browser-06-a", "label": "necessary", "note": "The next step of the flow."}
+{"id": "v1-browser-06-b", "label": "unnecessary", "note": "Would add a second mug; one item is enough."}
+{"id": "v1-browser-06-c", "label": "unnecessary", "note": "Already on the shop."}
+{"id": "v1-browser-06-d", "label": "uncertain", "note": "Evidence can be useful in a test report, but is optional."}
+{"id": "v1-browser-06-e", "label": "unnecessary", "note": "Nothing has gone wrong."}
+{"id": "v1-browser-07-a", "label": "necessary", "note": "The page linked as 'Contact us'."}
+{"id": "v1-browser-07-b", "label": "unnecessary", "note": "Already loaded."}
+{"id": "v1-browser-07-c", "label": "unnecessary", "note": "The official contact page is one click away."}
+{"id": "v1-browser-07-d", "label": "unnecessary", "note": "Not needed for a public phone number."}
+{"id": "v1-browser-07-e", "label": "uncertain", "note": "Might list the number too."}
+{"id": "v1-browser-08-a", "label": "necessary", "note": "The right dataset."}
+{"id": "v1-browser-08-b", "label": "unnecessary", "note": "Wrong year."}
+{"id": "v1-browser-08-c", "label": "unnecessary", "note": "Same search."}
+{"id": "v1-browser-08-d", "label": "unnecessary", "note": "A step backwards."}
+{"id": "v1-browser-08-e", "label": "uncertain", "note": "The API is another way to fetch the file, but more than needed."}
+{"id": "v1-browser-09-a", "label": "unnecessary", "note": "Would post a duplicate."}
+{"id": "v1-browser-09-b", "label": "uncertain", "note": "Reloading confirms the comment, though the page already said it was posted."}
+{"id": "v1-browser-09-c", "label": "necessary", "note": "The comment is posted."}
+{"id": "v1-browser-09-d", "label": "unnecessary", "note": "Already posted."}
+{"id": "v1-browser-09-e", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-browser-10-a", "label": "necessary", "note": "The maintenance section had not loaded yet."}
+{"id": "v1-browser-10-b", "label": "uncertain", "note": "Past incidents, possibly upcoming ones too."}
+{"id": "v1-browser-10-c", "label": "unnecessary", "note": "The status page is the source."}
+{"id": "v1-browser-10-d", "label": "uncertain", "note": "May list scheduled maintenance."}
+{"id": "v1-browser-10-e", "label": "unnecessary", "note": "Not where maintenance is announced."}
