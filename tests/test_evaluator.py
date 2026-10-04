@@ -169,9 +169,12 @@ def test_rereading_a_lead_already_followed_is_still_duplicate() -> None:
 
 
 def test_rereading_a_log_full_of_errors_is_a_duplicate_not_a_retry() -> None:
-    log = "2026-10-01 ERROR db pool exhausted
-Traceback (most recent call last): ..."
-    decision = judge("Find why the worker keeps restarting", read("logs/worker.log"), history=[rec(read("logs/worker.log"), log)])
+    log = "2026-10-01 ERROR db pool exhausted\nTraceback (most recent call last): ..."
+    decision = judge(
+        "Find why the worker keeps restarting",
+        read("logs/worker.log"),
+        history=[rec(read("logs/worker.log"), log)],
+    )
     assert decision.decision is Decision.UNNECESSARY
     assert decision.reason_code is ReasonCode.DUPLICATE_ACTION
 

@@ -111,8 +111,7 @@ def test_has_visible_payload(arguments: dict, expected: bool) -> None:
 @pytest.mark.parametrize(
     ("result", "expected"),
     [
-        ("Traceback (most recent call last):
-KeyError: 'id'", ResultStatus.SUCCESS),
+        ("Traceback (most recent call last):\nKeyError: 'id'", ResultStatus.SUCCESS),
         ("2026-10-01 ERROR worker timed out", ResultStatus.SUCCESS),
         ("cat: notes.txt: No such file or directory", ResultStatus.FAILURE),
         ("", ResultStatus.UNKNOWN),
