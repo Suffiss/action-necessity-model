@@ -188,10 +188,11 @@ def test_a_write_is_never_labelled_a_prerequisite_read() -> None:
     assert decision.reason_code is not ReasonCode.PREREQUISITE_ACTION
 
 
-def test_editing_a_file_surfaced_by_search_is_not_information_gathering() -> None:
+def test_editing_a_file_surfaced_by_search_acts_on_the_lead() -> None:
     decision = judge(
-        "Fix the crash on empty input",
-        act("file_edit", "edit_file", "Guard against empty input", path="core/parse.py", old="x[0]", new="x[0] if x else None"),
-        history=[rec(act("search", "grep", "Search for IndexError", query="IndexError"), "core/parse.py:12: IndexError")],
+        "Find why the nightly sync crashed and fix it",
+        act("file_edit", "edit_file", "Skip rows without an id", path="workers/sync.py", old="row['id']", new="row.get('id')"),
+        history=[rec(act("search", "grep", "Search for KeyError", query="KeyError"), "workers/sync.py:12: KeyError: 'id'")],
     )
-    assert decision.reason_code is not ReasonCode.NEW_INFORMATION_REQUIRED
+    assert decision.decision is Decision.NECESSARY
+    assert decision.reason_code is ReasonCode.DIRECT_GOAL_DEPENDENCY

@@ -94,7 +94,7 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
     proposed = context.proposed_action
     match = _find_match(prep, similarity, duplicate_threshold)
     mutating = is_mutating(proposed, prep.kind)
-    # Continuations and lead-following describe information gathering, not writes.
+    # Paging through truncated output is information gathering, never a write.
     gathers = match is None and not mutating
     verify_from = _last_mutation(prep, strict=True)
     relevance, disjoint = _relevance(context.goal, prep.goal_stems, prep.action_stems)
@@ -108,7 +108,7 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
         match=match,
         post_change_observation=verify_from is not None and prep.kind is not ActionKind.EXECUTE,
         continuation=gathers and _continues_truncated_result(prep),
-        follow_up=gathers and _follows_lead(prep),
+        follow_up=match is None and _follows_lead(prep),
         verification_candidate=verify_from is not None and (match is None or match.index < verify_from),
         prerequisite=_is_prerequisite(prep, match, verify_from),
         information_need=_has_information_need(prep, match),

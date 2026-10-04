@@ -84,7 +84,10 @@ def _support(f: Features, w: ScoringWeights) -> list[Contribution]:
     if f.continuation:
         items.append(Contribution(ReasonCode.NEW_INFORMATION_REQUIRED, w.continuation))
     if f.follow_up:
-        items.append(Contribution(ReasonCode.NEW_INFORMATION_REQUIRED, w.follow_up))
+        # Reading a surfaced lead gathers information; writing to it acts on the
+        # agent's own findings, which ties it to the goal.
+        reason = ReasonCode.DIRECT_GOAL_DEPENDENCY if f.mutating else ReasonCode.NEW_INFORMATION_REQUIRED
+        items.append(Contribution(reason, w.follow_up))
     if f.prerequisite:
         items.append(Contribution(ReasonCode.PREREQUISITE_ACTION, w.prerequisite))
     if f.match is not None and f.match.changed_since:
