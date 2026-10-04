@@ -221,3 +221,4 @@ __marimo__/
 
 # Labeling working files
 labeling-sheet.csv
+benchmarks/labeler/dist/
