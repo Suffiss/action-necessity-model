@@ -1,213 +1,242 @@
 <title>Necessity Labeler</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: sticky toolbar; scenario context (goal, history) on the left, the five candidate actions to judge on the right; one column on phones. */
+/* Layout: one question per screen. A large "situation" card (goal + what was done), then the single
+   next step to judge with three full-width answer buttons. Built for readers of any age: 19px base,
+   72px touch targets, plain Chinese first, technical originals folded away. */
 :root {
-  --paper: #f3f5f2;
+  --paper: #f4f3ee;
   --panel: #ffffff;
-  --ink: #18201d;
-  --muted: #5a6560;
-  --line: #d6ddd8;
-  --accent: #23577a;
+  --ink: #15191a;
+  --muted: #4e5656;
+  --line: #cfd3cf;
+  --accent: #1f5a7a;
   --accent-ink: #ffffff;
-  --code-bg: #eef1ee;
-  --nec: #23784a;
-  --nec-soft: #e2f1e7;
-  --unn: #a8422c;
-  --unn-soft: #f6e4df;
-  --unc: #8e6a0e;
-  --unc-soft: #f5edd6;
-  --focus: #23577a;
-  --font-body: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
-  --radius: 6px;
+  --code-bg: #eceee9;
+  --yes: #1d6b41;
+  --yes-soft: #dff0e5;
+  --no: #9e3b25;
+  --no-soft: #f6e1db;
+  --maybe: #7c5b06;
+  --maybe-soft: #f4ebcf;
+  --focus: #1f5a7a;
+  --font-body: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+  --radius: 10px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #131917; --panel: #1b2320; --ink: #e4ebe7; --muted: #9aa8a1; --line: #2e3a35;
-    --accent: #7fb2d6; --accent-ink: #0d1a22; --code-bg: #222c28;
-    --nec: #6cc796; --nec-soft: #1d3428; --unn: #ec8b74; --unn-soft: #3a231d; --unc: #e0b54c; --unc-soft: #352c15;
-    --focus: #7fb2d6; color-scheme: dark;
+    --paper: #121614; --panel: #1b201e; --ink: #eef1ee; --muted: #b0b9b4; --line: #34403b;
+    --accent: #8cc3e6; --accent-ink: #0b1820; --code-bg: #242b28;
+    --yes: #7fd8a5; --yes-soft: #1b3326; --no: #f29c86; --no-soft: #3b231c; --maybe: #e9c45f; --maybe-soft: #352c14;
+    --focus: #8cc3e6; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #131917; --panel: #1b2320; --ink: #e4ebe7; --muted: #9aa8a1; --line: #2e3a35;
-  --accent: #7fb2d6; --accent-ink: #0d1a22; --code-bg: #222c28;
-  --nec: #6cc796; --nec-soft: #1d3428; --unn: #ec8b74; --unn-soft: #3a231d; --unc: #e0b54c; --unc-soft: #352c15;
-  --focus: #7fb2d6; color-scheme: dark;
+  --paper: #121614; --panel: #1b201e; --ink: #eef1ee; --muted: #b0b9b4; --line: #34403b;
+  --accent: #8cc3e6; --accent-ink: #0b1820; --code-bg: #242b28;
+  --yes: #7fd8a5; --yes-soft: #1b3326; --no: #f29c86; --no-soft: #3b231c; --maybe: #e9c45f; --maybe-soft: #352c14;
+  --focus: #8cc3e6; color-scheme: dark;
 }
 * { box-sizing: border-box; }
-/* Components set their own display, which would otherwise override the hidden attribute on static hosts. */
 [hidden] { display: none !important; }
-body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--font-body); }
+body { background: var(--paper); color: var(--ink); font: 19px/1.7 var(--font-body); }
 button, input { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
-h1, h2, h3 { text-wrap: balance; margin: 0; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2 { text-wrap: balance; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: grid; gap: 14px; }
+.muted { color: var(--muted); }
+.small { font-size: 16px; }
+.big-btn { min-height: 64px; border-radius: var(--radius); border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-size: 21px; font-weight: 600; padding: 10px 18px; cursor: pointer; }
+.big-btn.secondary { background: var(--panel); color: var(--accent); }
+.big-btn:disabled { opacity: 0.45; cursor: default; }
+.link-btn { background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 8px 4px; font-size: 17px; }
+.status { font-size: 15px; color: var(--muted); }
+.status[data-tone="ok"] { color: var(--yes); }
+.status[data-tone="bad"] { color: var(--no); }
 
-/* toolbar */
-.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line); }
-.bar-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding-block: 10px; }
-.brand { font-weight: 600; letter-spacing: 0.01em; }
-.brand small { color: var(--muted); font-weight: 400; margin-left: 6px; }
-.meter { flex: 1 1 220px; display: flex; align-items: center; gap: 10px; min-width: 0; }
-.meter-track { flex: 1; height: 6px; background: var(--code-bg); border-radius: 3px; overflow: hidden; }
-.meter-fill { height: 100%; background: var(--accent); width: 0; transition: width 0.25s; }
-.meter-text { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; font-size: 13px; }
-.status { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
-.status[data-tone="ok"] { color: var(--nec); border-color: var(--nec); }
-.status[data-tone="warn"] { color: var(--unc); border-color: var(--unc); }
-.status[data-tone="bad"] { color: var(--unn); border-color: var(--unn); }
-.btn { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; }
-.btn:hover { border-color: var(--accent); }
-.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn:disabled { opacity: 0.5; cursor: default; }
+/* welcome */
+.hero h1 { font-size: 28px; line-height: 1.4; }
+.example { border: 2px dashed var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 8px; }
+.example .tag { font-size: 15px; font-weight: 600; color: var(--muted); }
+.example .answer { background: var(--code-bg); border-radius: 8px; padding: 10px 12px; }
+.ask-row { display: grid; gap: 10px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.choice-btn { min-height: 64px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--panel); font-size: 21px; cursor: pointer; }
+.choice-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.text-in { min-height: 56px; border: 2px solid var(--line); border-radius: var(--radius); padding: 10px 14px; background: var(--paper); font-size: 20px; width: 100%; }
+.start-btns { display: grid; gap: 12px; }
+.err { color: var(--no); font-weight: 600; min-height: 1.4em; }
 
-/* start */
-.start { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding-block: 40px; }
-.start h1 { font-size: 26px; margin-bottom: 10px; }
-.lede { color: var(--muted); max-width: 60ch; }
-.form { display: grid; gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; align-self: start; }
-.field { display: grid; gap: 6px; }
-.field label, .legend { font-weight: 500; }
-.hint { color: var(--muted); font-size: 13px; }
-.text { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; background: var(--paper); }
-.choice { display: flex; gap: 8px; align-items: flex-start; }
-.choice input { margin-top: 4px; }
-.err { color: var(--unn); font-size: 13px; min-height: 1.2em; }
-.qbox { border-left: 3px solid var(--accent); padding: 8px 14px; background: var(--panel); margin-block: 18px; }
+/* quiz */
+.topline { display: grid; gap: 8px; }
+.count { font-size: 20px; font-weight: 600; }
+.track { height: 12px; background: var(--code-bg); border-radius: 6px; overflow: hidden; }
+.fill { height: 100%; background: var(--accent); width: 0; transition: width 0.3s; }
+.label-chip { display: inline-block; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); }
+.goal { font-size: 23px; font-weight: 600; line-height: 1.5; }
+.state { background: var(--code-bg); border-radius: 8px; padding: 10px 14px; }
+.steps { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 12px; counter-reset: step; }
+.steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
+.steps li::before { counter-increment: step; content: counter(step); width: 30px; height: 30px; border-radius: 50%; background: var(--code-bg); display: grid; place-items: center; font-size: 16px; font-weight: 600; }
+.did { font-weight: 600; }
+.got { color: var(--muted); }
+.ask { border: 2px solid var(--accent); }
+.same { font-size: 16px; color: var(--muted); }
+.next { font-size: 24px; font-weight: 700; line-height: 1.5; background: var(--code-bg); border-radius: 8px; padding: 14px 16px; }
+.question { font-size: 22px; font-weight: 600; }
+.answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.answer { min-height: 84px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--panel); cursor: pointer; display: grid; place-items: center; gap: 2px; padding: 8px; }
+.answer b { font-size: 24px; }
+.answer span { font-size: 15px; color: var(--muted); }
+.answer[data-v="necessary"] { border-color: var(--yes); }
+.answer[data-v="unnecessary"] { border-color: var(--no); }
+.answer[data-v="uncertain"] { border-color: var(--maybe); }
+.answer[data-v="necessary"][aria-pressed="true"] { background: var(--yes-soft); box-shadow: inset 0 0 0 2px var(--yes); }
+.answer[data-v="unnecessary"][aria-pressed="true"] { background: var(--no-soft); box-shadow: inset 0 0 0 2px var(--no); }
+.answer[data-v="uncertain"][aria-pressed="true"] { background: var(--maybe-soft); box-shadow: inset 0 0 0 2px var(--maybe); }
+.skip-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.skip-row .picked { font-size: 16px; color: var(--muted); }
+.note { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--paper); font-size: 17px; }
+.nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+details.tech { font-size: 15px; color: var(--muted); }
+details.tech summary { cursor: pointer; padding: 4px 0; }
+details.tech pre { margin: 6px 0 0; padding: 10px 12px; background: var(--code-bg); border-radius: 8px; font: 13px/1.5 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow: auto; color: var(--ink); }
 
-/* work */
-.scen-nav { display: flex; flex-wrap: wrap; gap: 6px; padding-block: 14px 4px; }
-.chip { font: 12px/1 var(--font-mono); padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-variant-numeric: tabular-nums; }
-.chip[data-done="all"] { background: var(--nec-soft); border-color: var(--nec); }
-.chip[data-done="some"] { background: var(--unc-soft); border-color: var(--unc); }
-.chip[aria-current="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
-.layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; padding-block: 12px 32px; align-items: start; }
-.context { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 64px); max-height: calc(100dvh - 90px); overflow: auto; }
-.eyebrow { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.goal { font-size: 18px; font-weight: 600; margin: 4px 0 12px; }
-.state { background: var(--code-bg); border-radius: 4px; padding: 8px 10px; margin-bottom: 12px; }
-.timeline { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
-.step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
-.step-n { font: 12px/24px var(--font-mono); color: var(--muted); text-align: right; }
-.tool { font: 500 12px/1 var(--font-mono); background: var(--code-bg); border-radius: 3px; padding: 3px 6px; margin-right: 6px; white-space: nowrap; }
-.args { display: block; color: var(--muted); font: 12px/1.5 var(--font-mono); word-break: break-word; margin-top: 2px; }
-.result { margin: 6px 0 0; padding: 8px 10px; background: var(--code-bg); border-radius: 4px; font: 12px/1.5 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
-.empty-hist { color: var(--muted); font-style: italic; }
-
-.cands { display: grid; gap: 12px; }
-.cands-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
-.keys { color: var(--muted); font-size: 12px; }
-.keys kbd { font: 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; background: var(--panel); }
-.cand { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; }
-.cand[data-focus="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.cand-head { display: flex; gap: 10px; align-items: baseline; }
-.letter { font: 600 13px var(--font-mono); color: var(--muted); }
-.cand-desc { font-weight: 500; }
-.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.seg button { border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); padding: 8px 6px; cursor: pointer; display: flex; justify-content: center; gap: 6px; align-items: baseline; }
-.seg button small { font: 11px var(--font-mono); color: var(--muted); }
-.seg button[data-label="necessary"][aria-pressed="true"] { background: var(--nec-soft); border-color: var(--nec); color: var(--nec); font-weight: 600; }
-.seg button[data-label="unnecessary"][aria-pressed="true"] { background: var(--unn-soft); border-color: var(--unn); color: var(--unn); font-weight: 600; }
-.seg button[data-label="uncertain"][aria-pressed="true"] { background: var(--unc-soft); border-color: var(--unc); color: var(--unc); font-weight: 600; }
-.note { width: 100%; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; background: var(--paper); font-size: 13px; }
-.pager { display: flex; justify-content: space-between; gap: 10px; }
-.banner { background: var(--nec-soft); border: 1px solid var(--nec); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+/* done */
+.thanks { font-size: 30px; font-weight: 700; }
+.code-box { font: 600 22px/1.7 var(--font-mono); background: var(--panel); color: var(--ink); border: 3px solid var(--ink); border-radius: var(--radius); padding: 16px 18px; letter-spacing: 0.04em; display: flex; flex-wrap: wrap; gap: 2px 18px; }
+/* Each group stays whole, so a narrow screen breaks lines only between groups and a photo stays decodable. */
+.code-box span { white-space: nowrap; }
+.code-box .code-line { flex-basis: 100%; }
+.howto { font-size: 21px; font-weight: 600; }
 
 /* dialogs */
-dialog { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 0; width: min(760px, calc(100% - 32px)); max-height: calc(100dvh - 48px); }
-dialog::backdrop { background: rgba(10, 16, 14, 0.45); }
-.dlg { padding: 20px; display: grid; gap: 12px; }
-.dlg h2 { font-size: 20px; }
-.dlg h3 { font-size: 15px; margin-top: 6px; }
+dialog { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 0; width: min(760px, calc(100% - 24px)); max-height: calc(100dvh - 40px); }
+dialog::backdrop { background: rgba(10, 14, 12, 0.5); }
+.dlg { padding: 20px; display: grid; gap: 12px; font-size: 17px; }
+.dlg h2 { font-size: 22px; }
+.dlg h3 { font-size: 17px; margin-top: 6px; }
+.dlg ol, .dlg ul { margin: 0; padding-left: 22px; display: grid; gap: 4px; }
 .dlg-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
 .guide-body { display: grid; gap: 12px; }
-.lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.lang-switch button { border: 0; background: var(--panel); padding: 5px 12px; cursor: pointer; font-size: 13px; }
+.lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.lang-switch button { border: 0; background: var(--panel); padding: 6px 14px; cursor: pointer; font-size: 16px; }
 .lang-switch button + button { border-left: 1px solid var(--line); }
 .lang-switch button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-.dlg ol, .dlg ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .tbl-wrap { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.csv { width: 100%; min-height: 220px; font: 12px/1.4 var(--font-mono); border: 1px solid var(--line); border-radius: var(--radius); background: var(--code-bg); padding: 8px; }
-.row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.csv { width: 100%; min-height: 180px; font: 13px/1.4 var(--font-mono); border: 1px solid var(--line); border-radius: 8px; background: var(--code-bg); padding: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
 
-@media (max-width: 900px) {
-  .start, .layout { grid-template-columns: minmax(0, 1fr); }
-  .context { position: static; max-height: none; }
+@media (max-width: 640px) {
+  body { font-size: 18px; }
+  .answers { grid-template-columns: minmax(0, 1fr); }
+  .answer { min-height: 72px; grid-auto-flow: column; justify-content: center; gap: 12px; }
+  .goal { font-size: 21px; }
+  .next { font-size: 21px; }
 }
-@media (prefers-reduced-motion: reduce) { .meter-fill { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 </style>
 
-<header class="bar">
-  <div class="wrap bar-inner">
-    <div class="brand">动作必要性标注<small id="who"></small></div>
-    <div class="meter" id="meter" hidden>
-      <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
-      <span class="meter-text" id="meter-text"></span>
-    </div>
-    <span class="status" id="status" data-tone="">本地模式</span>
-    <button class="btn" id="open-guide" type="button">标注规则</button>
-    <button class="btn" id="open-export" type="button" hidden>导出 CSV</button>
-  </div>
-</header>
-
 <main class="wrap">
-  <section class="start" id="start">
-    <div>
-      <h1>判断 AI 智能体的下一步是否必要</h1>
-      <p class="lede">每个场景给出一个智能体的目标、它已经做过的动作（及结果），以及 5 个它<em>可能</em>采取的下一步。请逐个判断每个下一步是否必要。</p>
-      <div class="qbox"><strong>核心问题：</strong>如果一个能干又高效的智能体处在这个情况下，它会做这一步吗？</div>
-      <ul class="lede">
-        <li><b>需要</b>：跳过会影响目标，或缺少它合理需要的信息或确认。</li>
-        <li><b>多余</b>：跳过不影响目标——重复、得不到新信息、超出目标范围，或目标已完成。</li>
-        <li><b>不确定</b>：认真的人也可能意见不同，或信息不足以判断。这是有效答案。</li>
-      </ul>
-      <p class="hint">答案只保存你自己的；其他标注人看不到，你也看不到他们的。</p>
+  <!-- ============================================================ welcome -->
+  <section id="welcome" class="card hero" aria-labelledby="welcome-title">
+    <h1 id="welcome-title">请帮我们判断：AI 助手的这一步，有没有必要？</h1>
+    <p>AI 助手会替人做事，比如查资料、整理文件。可它有时会做些没用的事，白白浪费时间。</p>
+    <p>每道题会告诉您：<b>它要完成什么任务</b>、<b>它已经做了哪些事</b>，再问您<b>下一步有没有必要做</b>。凭常识判断就行，没有标准答案。</p>
+
+    <div class="example" aria-label="例子">
+      <span class="tag">先看一个例子</span>
+      <p><b>任务：</b>给朋友发一条生日祝福短信。</p>
+      <p><b>已经做了：</b>① 写好了祝福语。② 点了“发送”，手机显示“已发送”。</p>
+      <p><b>下一步：</b>点一下“发送”。</p>
+      <p class="answer"><b>答：没必要。</b>短信已经发出去了，再点一次朋友会收到两条一样的。</p>
+      <p><b>如果下一步是：</b>打开短信记录，看看有没有发出去。</p>
+      <p class="answer"><b>答：说不准。</b>手机已经显示“已发送”，看一眼也无妨——两种想法都说得通。</p>
     </div>
-    <form class="form" id="start-form" novalidate>
-      <div class="field">
-        <label for="annotator">你的代号</label>
-        <input class="text mono" id="annotator" autocomplete="off" spellcheck="false" placeholder="例如 lin" maxlength="32">
-        <span class="hint">小写字母、数字、- 或 _，用于区分标注人。</span>
+
+    <div class="ask-row">
+      <label for="person-name" class="small"><b>怎么称呼您？</b>（可以不填）</label>
+      <input class="text-in" id="person-name" maxlength="20" autocomplete="off" placeholder="例如：王阿姨">
+    </div>
+    <div class="ask-row" role="group" aria-labelledby="bg-q">
+      <span id="bg-q" class="small"><b>您平时会写电脑程序吗？</b>（会不会都可以，只是帮我们分类）</span>
+      <div class="pair">
+        <button class="choice-btn" type="button" data-bg="yes" aria-pressed="false">会</button>
+        <button class="choice-btn" type="button" data-bg="no" aria-pressed="false">不会</button>
       </div>
-      <fieldset class="field" style="border:0;padding:0;margin:0">
-        <span class="legend">任务</span>
-        <label class="choice"><input type="radio" name="set" id="set-pilot" value="pilot" checked><span>试点：6 个场景，30 条（约 20 分钟）</span></label>
-        <label class="choice"><input type="radio" name="set" id="set-full" value="full"><span>全部：60 个场景，300 条（约 3 小时，可分多次）</span></label>
-      </fieldset>
-      <label class="choice"><input type="checkbox" id="ack-guide"><span>我已读过<a href="#" id="guide-link">标注规则</a></span></label>
-      <label class="choice"><input type="checkbox" id="ack-indep"><span>我会独立完成，完成前不和其他标注人讨论</span></label>
-      <div class="err" id="start-err" role="alert"></div>
-      <button class="btn primary" type="submit" id="start-btn">开始标注</button>
-    </form>
+    </div>
+    <p class="small muted">请您<b>自己一个人</b>做，做完之前先别和别人商量答案。答案只保存您自己的。</p>
+    <div class="err" id="welcome-err" role="alert"></div>
+    <div class="start-btns">
+      <button class="big-btn" type="button" id="start-pilot">开始：做 30 道题（大约 20 分钟）</button>
+      <button class="big-btn secondary" type="button" id="start-full">做全部 300 道题（大约 3 小时，可以分几次做）</button>
+      <button class="big-btn secondary" type="button" id="resume" hidden></button>
+    </div>
+    <span class="status" id="status-welcome"></span>
   </section>
 
-  <section id="work" hidden>
-    <nav class="scen-nav" id="scen-nav" aria-label="场景"></nav>
-    <div class="banner" id="done-banner" hidden>
-      <span><strong>全部完成。</strong><span id="done-text"></span></span>
-      <button class="btn primary" type="button" id="done-export">导出 CSV</button>
-    </div>
-    <div class="layout">
-      <article class="context" id="context" aria-label="场景信息"></article>
-      <section class="cands" aria-label="候选的下一步">
-        <div class="cands-head">
-          <h2 style="font-size:16px">候选的下一步</h2>
-          <span class="keys"><kbd>N</kbd> 需要 · <kbd>U</kbd> 多余 · <kbd>?</kbd> 不确定 · <kbd>↑</kbd><kbd>↓</kbd> 选择 · <kbd>←</kbd><kbd>→</kbd> 换场景</span>
+  <!-- =============================================================== quiz -->
+  <section id="quiz" hidden aria-live="polite">
+    <div class="wrap" style="padding:0">
+      <div class="topline">
+        <span class="count" id="count"></span>
+        <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+        <span class="status" id="status"></span>
+      </div>
+
+      <article class="card" aria-labelledby="sit-label">
+        <span class="label-chip" id="sit-label">情况</span>
+        <p class="small muted">AI 助手的任务：</p>
+        <p class="goal" id="goal"></p>
+        <p class="state" id="state" hidden></p>
+        <p class="small muted" id="steps-label">它已经做了这些事：</p>
+        <ol class="steps" id="steps"></ol>
+        <details class="tech"><summary>原始记录（给懂电脑的人看）</summary><pre id="tech-context"></pre></details>
+      </article>
+
+      <article class="card ask" aria-labelledby="question">
+        <p class="same" id="same"></p>
+        <p class="small muted">现在，AI 助手想做的<b>下一步</b>是：</p>
+        <p class="next" id="next"></p>
+        <details class="tech"><summary>原始写法（给懂电脑的人看）</summary><pre id="tech-next"></pre></details>
+        <p class="question" id="question">这一步有必要吗？</p>
+        <div class="answers" id="answers"></div>
+        <div class="skip-row">
+          <button class="link-btn" type="button" id="skip">这一题我看不懂，跳过</button>
+          <span class="picked" id="picked"></span>
         </div>
-        <div id="cands" class="cands"></div>
-        <div class="pager">
-          <button class="btn" type="button" id="prev">← 上一个场景</button>
-          <button class="btn primary" type="button" id="next">下一个场景 →</button>
-        </div>
-      </section>
+        <input class="note" id="note" maxlength="300" placeholder="想补充一句理由吗？（可以不填）" aria-label="补充理由（可以不填）">
+      </article>
+
+      <div class="nav">
+        <button class="big-btn secondary" type="button" id="back">← 上一题</button>
+        <button class="big-btn secondary" type="button" id="forward">下一题 →</button>
+      </div>
+      <div class="row" style="justify-content:space-between">
+        <button class="link-btn" type="button" id="open-guide">怎么判断？看说明</button>
+        <button class="link-btn" type="button" id="finish-early">先做到这里，看答案码</button>
+      </div>
     </div>
+  </section>
+
+  <!-- =============================================================== done -->
+  <section id="done" class="card" hidden aria-labelledby="done-title">
+    <p class="thanks" id="done-title">做完了，谢谢您！</p>
+    <p id="done-summary"></p>
+    <p class="howto" id="done-howto"></p>
+    <div class="code-box" id="code" aria-label="答案码"></div>
+    <p class="small muted">答案码记录了您的每一个选择，最后一行用来核对有没有抄错。</p>
+    <div class="row" style="justify-content:flex-start">
+      <button class="big-btn secondary" type="button" id="copy-code">复制答案码</button>
+      <button class="big-btn secondary" type="button" id="open-export">导出表格文件</button>
+      <button class="big-btn secondary" type="button" id="review">回去改答案</button>
+    </div>
+    <span class="err" id="copy-msg" role="status"></span>
+    <span class="status" id="status-done"></span>
   </section>
 </main>
 
@@ -311,20 +340,20 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
       <p class="hint">Full guide: <a href="https://github.com/Suffiss/action-necessity-model/blob/main/docs/labeling-guide.md" target="_blank" rel="noopener">docs/labeling-guide.md</a></p>
     </div>
 
-    <div class="row"><button class="btn primary" type="button" data-close id="guide-close">知道了</button></div>
+    <div class="row"><button class="big-btn" type="button" data-close id="guide-close">知道了</button></div>
   </div>
 </dialog>
 
 <dialog id="export" aria-labelledby="export-title">
   <div class="dlg">
-    <h2 id="export-title">导出你的标注</h2>
-    <p id="export-intro" class="hint"></p>
-    <textarea class="csv" id="csv" readonly aria-label="CSV 内容"></textarea>
+    <h2 id="export-title">导出表格文件</h2>
+    <p id="export-intro" class="muted"></p>
+    <textarea class="csv" id="csv" readonly aria-label="表格内容"></textarea>
     <div class="err" id="export-msg" role="status"></div>
     <div class="row">
-      <button class="btn" type="button" id="copy-csv">复制</button>
-      <button class="btn" type="button" id="save-csv" hidden>下载文件</button>
-      <button class="btn primary" type="button" data-close>关闭</button>
+      <button class="big-btn secondary" type="button" id="copy-csv">复制</button>
+      <button class="big-btn secondary" type="button" id="save-csv" hidden>下载文件</button>
+      <button class="big-btn" type="button" data-close>关闭</button>
     </div>
   </div>
 </dialog>
@@ -333,54 +362,63 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
 <script>
 "use strict";
 const DATA = JSON.parse(document.getElementById("data").textContent);
-const LABELS = [
-  { value: "necessary", zh: "需要", keys: ["n", "1"] },
-  { value: "unnecessary", zh: "多余", keys: ["u", "2"] },
-  { value: "uncertain", zh: "不确定", keys: ["?", "q", "3", "/"] },
+const ANSWERS = [
+  { value: "necessary", zh: "有必要", hint: "应该做这一步", keys: ["1", "n"] },
+  { value: "unnecessary", zh: "没必要", hint: "不做也不影响", keys: ["2", "u"] },
+  { value: "uncertain", zh: "说不准", hint: "两边都说得通", keys: ["3", "?", "q", "/"] },
 ];
-const NAME_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
-const LOCAL_KEY = "suffiss-labeler-v1";
+const SKIP = "skip";
+const PICKED_TEXT = { necessary: "您选了：有必要", unnecessary: "您选了：没必要", uncertain: "您选了：说不准", skip: "您选了：看不懂，跳过" };
+const CODE_DIGIT = { necessary: "1", unnecessary: "2", uncertain: "3", skip: "0" };
+const STORE_KEY = "suffiss-labeler-v2";
+const OLD_STORE_KEY = "suffiss-labeler-v1";
 const $ = (id) => document.getElementById(id);
 
-// ------------------------------------------------------------- state
-function loadLocal() {
-  try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || null; } catch (e) { return null; }
+// ------------------------------------------------------------------ state
+function readJson(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || null; } catch (e) { return null; }
 }
+function migrateOld() {
+  // Earlier page version: keep anyone's existing answers.
+  const old = readJson(OLD_STORE_KEY);
+  if (!old || !old.labels) return null;
+  return { name: old.annotator || "", programmer: null, set: old.set || "pilot", labels: old.labels, pos: 0, updatedAt: old.updatedAt || null, started: true };
+}
+let state = Object.assign({ name: "", programmer: null, set: "pilot", labels: {}, pos: 0, updatedAt: null, started: false },
+  readJson(STORE_KEY) || migrateOld() || {});
 function saveLocal() {
-  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch (e) { /* storage blocked: the server copy or the CSV export still holds the work */ }
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage blocked: the answer code still carries the work */ }
 }
-let state = Object.assign({ annotator: "", set: "pilot", labels: {}, scenario: 0, updatedAt: null }, loadLocal() || {});
-let focusIdx = 0;
-
 function scenarios() {
   return state.set === "pilot" ? DATA.scenarios.filter((s) => DATA.pilot.includes(s.context_id)) : DATA.scenarios;
 }
-function caseIds() { return scenarios().flatMap((s) => s.candidates.map((c) => c.id)); }
+function questions() {
+  return scenarios().flatMap((s) => s.candidates.map((c, i) => ({ s, c, i })));
+}
+function answered(id) { return Boolean(state.labels[id] && state.labels[id].label); }
 function progress() {
-  const ids = caseIds();
-  return { done: ids.filter((id) => state.labels[id] && state.labels[id].label).length, total: ids.length };
+  const qs = questions();
+  return { done: qs.filter((q) => answered(q.c.id)).length, total: qs.length };
 }
 function touch() {
   state.updatedAt = new Date().toISOString();
   saveLocal();
   scheduleRemote();
-  renderMeter();
 }
 
-// ------------------------------------------------------------ remote
-// Each annotator writes only labels/<their id>; the access rules hide it from everyone but the owner.
-const remote = { db: null, uid: null, timer: null, saving: false, dirty: false };
+// ----------------------------------------------------------------- remote
+// On claude.ai each person writes only labels/<their id>; the access rules hide it from everyone but the owner.
+const remote = { db: null, uid: null, timer: null, saving: false, dirty: false, tone: "", text: "" };
 const STATUS = {
-  local: ["仅保存在本浏览器 · 完成后请导出 CSV", "warn"],
-  connecting: ["正在连接…", ""],
-  saving: ["保存中…", ""],
-  saved: ["已自动保存", "ok"],
-  error: ["保存失败 · 请导出 CSV 备份", "bad"],
+  local: ["答案已保存在这台设备上", ""],
+  connecting: ["正在连接……", ""],
+  saving: ["正在保存……", ""],
+  saved: ["答案已自动保存", "ok"],
+  error: ["自动保存失败，答案仍在这台设备上", "bad"],
 };
 function setStatus(key) {
-  const [text, tone] = STATUS[key];
-  $("status").textContent = text;
-  $("status").dataset.tone = tone;
+  [remote.text, remote.tone] = STATUS[key];
+  for (const id of ["status", "status-welcome", "status-done"]) { $(id).textContent = remote.text; $(id).dataset.tone = remote.tone; }
 }
 async function connect() {
   if (!window.claude || !window.claude.use) { setStatus("local"); return; }
@@ -393,7 +431,7 @@ async function connect() {
     const snap = await db.doc("labels/" + uid).get();
     if (snap.exists) adoptRemote(snap.data());
     setStatus("saved");
-    if (state.annotator) scheduleRemote();
+    if (state.started) scheduleRemote();
   } catch (e) {
     remote.db = null;
     setStatus("local");
@@ -401,17 +439,14 @@ async function connect() {
 }
 function adoptRemote(doc) {
   if (!doc || !doc.labels) return;
-  const newer = !state.updatedAt || (doc.updatedAt && doc.updatedAt > state.updatedAt);
-  if (!newer) return;
-  state.annotator = doc.annotator || state.annotator;
-  state.set = doc.set || state.set;
-  state.labels = doc.labels;
-  state.updatedAt = doc.updatedAt;
+  if (state.updatedAt && !(doc.updatedAt && doc.updatedAt > state.updatedAt)) return;
+  Object.assign(state, { name: doc.name || state.name, programmer: typeof doc.programmer === "boolean" ? doc.programmer : state.programmer,
+    set: doc.set || state.set, labels: doc.labels, updatedAt: doc.updatedAt, started: true });
   saveLocal();
   route();
 }
 function scheduleRemote() {
-  if (!remote.db || !state.annotator) return;
+  if (!remote.db || !state.started) return;
   clearTimeout(remote.timer);
   remote.timer = setTimeout(flushRemote, 900);
 }
@@ -420,140 +455,175 @@ async function flushRemote() {
   if (remote.saving) { remote.dirty = true; return; }
   remote.saving = true;
   setStatus("saving");
-  const body = { annotator: state.annotator, set: state.set, labels: state.labels, updatedAt: state.updatedAt, benchmark: "v1" };
+  const body = { name: state.name, programmer: state.programmer, set: state.set, labels: state.labels, updatedAt: state.updatedAt, benchmark: "v1" };
   try {
     await remote.db.doc("labels/" + remote.uid).set(body);
     setStatus("saved");
   } catch (e) {
-    // invalid_argument here means this viewer may not write: keep working locally.
-    if (e && e.code === "invalid_argument") { remote.db = null; setStatus("local"); }
-    else setStatus("error");
+    // invalid_argument: this viewer may not write; keep working on this device.
+    if (e && e.code === "invalid_argument") { remote.db = null; setStatus("local"); } else setStatus("error");
   } finally {
     remote.saving = false;
     if (remote.dirty) { remote.dirty = false; flushRemote(); }
   }
 }
 
-// ----------------------------------------------------------- helpers
-function el(tag, props, ...children) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(props || {})) {
-    if (k === "class") node.className = v;
-    else if (k === "dataset") Object.assign(node.dataset, v);
-    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
-    else if (v !== false && v != null) node.setAttribute(k, v === true ? "" : v);
-  }
-  for (const child of children.flat()) if (child != null) node.append(child.nodeType ? child : String(child));
-  return node;
-}
-function argsText(args) {
-  const keys = Object.keys(args || {});
-  return keys.length ? JSON.stringify(args) : "";
-}
-function actionNode(action) {
-  const args = argsText(action.arguments);
-  return el("div", {}, el("span", { class: "tool" }, action.tool || action.type), el("span", { class: "cand-desc" }, action.description || ""), args ? el("code", { class: "args" }, args) : null);
-}
-
-// ------------------------------------------------------------ render
-function renderMeter() {
+// ---------------------------------------------------------------- welcome
+function renderWelcome() {
+  $("person-name").value = state.name || "";
+  document.querySelectorAll("[data-bg]").forEach((b) => b.setAttribute("aria-pressed", String(
+    (b.dataset.bg === "yes" && state.programmer === true) || (b.dataset.bg === "no" && state.programmer === false))));
   const { done, total } = progress();
-  $("meter").hidden = !state.annotator;
-  $("meter-fill").style.width = total ? (100 * done / total) + "%" : "0";
-  $("meter-text").textContent = done + " / " + total;
-  $("who").textContent = state.annotator ? "· " + state.annotator : "";
-  $("open-export").hidden = !state.annotator;
-  const complete = state.annotator && done === total;
-  $("done-banner").hidden = !complete;
-  if (complete) $("done-text").textContent = remote.db ? " 答案已自动保存，也可以导出备份。" : " 请导出 CSV 并发给协调人。";
-  renderNav();
+  $("resume").hidden = !state.started || done === 0;
+  $("resume").textContent = "继续上次的题目（已做 " + done + " / " + total + " 题）";
 }
-function renderNav() {
-  const nav = $("scen-nav");
-  nav.replaceChildren(...scenarios().map((s, i) => {
-    const n = s.candidates.filter((c) => state.labels[c.id] && state.labels[c.id].label).length;
-    return el("button", {
-      class: "chip", type: "button", title: s.category,
-      dataset: { done: n === s.candidates.length ? "all" : n ? "some" : "none" },
-      "aria-current": i === state.scenario ? "true" : "false",
-      onclick: () => go(i),
-    }, String(i + 1).padStart(2, "0"));
-  }));
-}
-function renderContext(s) {
-  const history = s.history.length
-    ? el("ol", { class: "timeline" }, s.history.map((h, i) =>
-        el("li", { class: "step" }, el("span", { class: "step-n" }, i + 1), el("div", {}, actionNode(h.action), el("pre", { class: "result" }, "→ " + (h.result || "(无输出)"))))))
-    : el("p", { class: "empty-hist" }, "还没有执行过任何动作。");
-  $("context").replaceChildren(
-    el("div", { class: "eyebrow" }, "场景 " + (state.scenario + 1) + " / " + scenarios().length + " · " + s.category),
-    el("h2", { class: "goal" }, s.goal),
-    s.state ? el("div", { class: "state" }, el("span", { class: "eyebrow" }, "当前状态 "), s.state) : null,
-    el("div", { class: "eyebrow" }, "已执行的动作和结果"),
-    history,
-  );
-}
-function candidateCard(c, idx) {
-  const current = state.labels[c.id] || {};
-  const card = el("div", { class: "cand", tabindex: "0", dataset: { focus: String(idx === focusIdx), id: c.id }, onfocus: () => setFocus(idx, false) },
-    el("div", { class: "cand-head" }, el("span", { class: "letter" }, "ABCDE"[idx]), actionNode(c.action)),
-    el("div", { class: "seg", role: "group", "aria-label": "判断" }, LABELS.map((l) =>
-      el("button", { type: "button", dataset: { label: l.value }, "aria-pressed": String(current.label === l.value), onclick: () => setLabel(idx, l.value) }, l.zh, el("small", {}, l.keys[0].toUpperCase())))),
-    el("input", { class: "note", id: "note-" + c.id, placeholder: "备注（可选，难判断时写一句理由）", value: current.note || "", maxlength: "300", oninput: (e) => setNote(c.id, e.target.value) }),
-  );
-  return card;
-}
-function renderCandidates(s) {
-  $("cands").replaceChildren(...s.candidates.map(candidateCard));
-  $("prev").disabled = state.scenario === 0;
-  $("next").textContent = state.scenario === scenarios().length - 1 ? "回到第一个场景" : "下一个场景 →";
-}
-function renderWork() {
-  const list = scenarios();
-  state.scenario = Math.min(Math.max(0, state.scenario), list.length - 1);
-  const s = list[state.scenario];
-  renderContext(s);
-  renderCandidates(s);
-  renderMeter();
-}
-function route() {
-  const started = Boolean(state.annotator);
-  $("start").hidden = started;
-  $("work").hidden = !started;
-  if (started) renderWork(); else renderMeter();
-}
-
-// ----------------------------------------------------------- actions
-function go(i) {
-  state.scenario = (i + scenarios().length) % scenarios().length;
-  focusIdx = 0;
-  saveLocal();
-  renderWork();
+function start(set) {
+  if (state.programmer === null) { $("welcome-err").textContent = "请先回答：您平时会写电脑程序吗？"; return; }
+  $("welcome-err").textContent = "";
+  state.name = $("person-name").value.trim().slice(0, 20);
+  if (set) state.set = set;
+  state.started = true;
+  state.pos = firstUnanswered();
+  touch();
+  route();
   window.scrollTo({ top: 0 });
 }
-function setFocus(idx, move) {
-  focusIdx = idx;
-  document.querySelectorAll(".cand").forEach((card, i) => { card.dataset.focus = String(i === idx); });
-  if (move) { const card = document.querySelectorAll(".cand")[idx]; if (card) card.focus({ preventScroll: false }); }
+
+// ------------------------------------------------------------------- quiz
+function firstUnanswered(from) {
+  const qs = questions();
+  const begin = from || 0;
+  for (let k = 0; k < qs.length; k++) { const i = (begin + k) % qs.length; if (!answered(qs[i].c.id)) return i; }
+  return qs.length;
 }
-function setLabel(idx, label) {
-  const c = scenarios()[state.scenario].candidates[idx];
-  const prev = state.labels[c.id] || {};
-  state.labels[c.id] = { label, note: prev.note || "" };
+function techAction(action) {
+  const args = action.arguments && Object.keys(action.arguments).length ? "\n" + JSON.stringify(action.arguments, null, 1) : "";
+  return (action.tool || action.type) + ": " + (action.description || "") + args;
+}
+function renderQuiz() {
+  const qs = questions();
+  state.pos = Math.max(0, Math.min(state.pos, qs.length - 1));
+  const { s, c, i } = qs[state.pos];
+  const zh = s.zh;
+  const { done, total } = progress();
+  $("count").textContent = "第 " + (state.pos + 1) + " 题，共 " + total + " 题（已答 " + done + " 题）";
+  $("fill").style.width = (100 * done / total) + "%";
+  $("goal").textContent = zh.goal;
+  $("state").hidden = !zh.state;
+  $("state").textContent = zh.state ? "目前知道：" + zh.state : "";
+  $("steps-label").textContent = zh.history.length ? "它已经做了这些事：" : "它还什么都没做。";
+  $("steps").replaceChildren(...zh.history.map((h) => {
+    const li = document.createElement("li");
+    const box = document.createElement("div");
+    const did = document.createElement("p"); did.className = "did"; did.textContent = h.action;
+    const got = document.createElement("p"); got.className = "got"; got.textContent = "结果：" + h.result;
+    box.append(did, got); li.append(box); return li;
+  }));
+  $("tech-context").textContent = "goal: " + s.goal + (s.state ? "\nstate: " + s.state : "") +
+    s.history.map((h, n) => "\n\n" + (n + 1) + ". " + techAction(h.action) + "\n-> " + h.result).join("");
+  $("same").textContent = "同一个情况下的第 " + (i + 1) + " 个下一步（共 " + s.candidates.length + " 个）";
+  $("next").textContent = zh.candidates[c.id];
+  $("tech-next").textContent = techAction(c.action);
+  const current = state.labels[c.id] || {};
+  $("answers").replaceChildren(...ANSWERS.map((a) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "answer"; b.dataset.v = a.value;
+    b.setAttribute("aria-pressed", String(current.label === a.value));
+    const big = document.createElement("b"); big.textContent = a.zh;
+    const sub = document.createElement("span"); sub.textContent = a.hint;
+    b.append(big, sub);
+    b.addEventListener("click", () => choose(a.value));
+    return b;
+  }));
+  $("picked").textContent = current.label ? PICKED_TEXT[current.label] : "";
+  $("note").value = current.note || "";
+  $("back").disabled = state.pos === 0;
+  $("forward").disabled = !answered(c.id);
+  saveLocal();
+}
+let advanceTimer = null;
+function choose(value) {
+  const { c } = questions()[state.pos];
+  state.labels[c.id] = { label: value, note: (state.labels[c.id] && state.labels[c.id].note) || "" };
   touch();
-  const card = document.querySelectorAll(".cand")[idx];
-  card.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.label === label)));
-  if (idx < 4) setFocus(idx + 1, true);
+  renderQuiz();
+  // A short pause lets the reader see which answer was recorded before the next question appears.
+  clearTimeout(advanceTimer);
+  advanceTimer = setTimeout(() => goNext(), 450);
+}
+function goNext() {
+  const qs = questions();
+  if (progress().done === qs.length) { showDone(); return; }
+  state.pos = state.pos + 1 < qs.length && !answered(qs[state.pos + 1].c.id) ? state.pos + 1 : firstUnanswered(state.pos + 1);
+  renderQuiz();
+  window.scrollTo({ top: 0 });
+}
+function goBack() {
+  clearTimeout(advanceTimer);
+  if (state.pos > 0) { state.pos -= 1; renderQuiz(); window.scrollTo({ top: 0 }); }
+}
+function goForward() {
+  clearTimeout(advanceTimer);
+  if (state.pos < questions().length - 1) { state.pos += 1; renderQuiz(); window.scrollTo({ top: 0 }); } else showDone();
 }
 let noteTimer = null;
-function setNote(id, text) {
-  const prev = state.labels[id] || { label: "" };
-  state.labels[id] = { label: prev.label || "", note: text.trim() };
+function onNote(text) {
+  const { c } = questions()[state.pos];
+  const prev = state.labels[c.id] || { label: "" };
+  state.labels[c.id] = { label: prev.label || "", note: text.trim() };
   clearTimeout(noteTimer);
-  noteTimer = setTimeout(touch, 400);
+  noteTimer = setTimeout(touch, 500);
 }
 
-// ------------------------------------------------------------ export
+// ------------------------------------------------------------------- done
+function buildAnswerCode() {
+  // Must stay identical to benchmarks/answer_code.py encode().
+  const rows = scenarios().map((s, n) => String(n + 1).padStart(2, "0") + ":" +
+    s.candidates.map((c) => CODE_DIGIT[(state.labels[c.id] || {}).label] || "-").join(""));
+  const digits = rows.map((r) => r.slice(3)).join("");
+  let sum = 0;
+  for (let k = 0; k < digits.length; k++) sum += (k + 1) * (digits[k] === "-" ? 4 : Number(digits[k]));
+  const head = "V1-" + (state.set === "pilot" ? "P" : "F") + "-" + (state.programmer === true ? "C" : state.programmer === false ? "L" : "U");
+  const lines = [head];
+  for (let k = 0; k < rows.length; k += 5) lines.push(rows.slice(k, k + 5).join(" "));
+  lines.push("CHK " + String(sum % 97).padStart(2, "0"));
+  return lines.join("\n");
+}
+function showDone() {
+  clearTimeout(advanceTimer);
+  state.finished = true;
+  saveLocal();
+  route();
+}
+function renderDone() {
+  const { done, total } = progress();
+  const allDone = done === total;
+  $("done-title").textContent = allDone ? "做完了，谢谢您！" : "先做到这里，谢谢您！";
+  $("done-summary").textContent = "一共 " + total + " 题，您已经答了 " + done + " 题。" + (allDone ? "" : "剩下的可以以后接着做。");
+  $("done-howto").textContent = remote.db
+    ? "您的答案已经自动保存，不用再做什么了。"
+    : "最后一步：请把下面这个框截图（或用手机拍下来），发给邀请您的人。";
+  const lines = buildAnswerCode().split("\n");
+  const pieces = [lines[0], ...lines.slice(1, -1).join(" ").split(" "), lines[lines.length - 1]];
+  // Real separators between the spans keep selected-and-copied text decodable.
+  $("code").replaceChildren(...pieces.flatMap((text, k) => {
+    const span = document.createElement("span");
+    span.textContent = text;
+    if (k === 0 || k === pieces.length - 1) span.className = "code-line";
+    return k === 0 ? [span] : [k === 1 || k === pieces.length - 1 ? "\n" : " ", span];
+  }));
+  $("open-export").hidden = false;
+}
+async function copyCode() {
+  try { await navigator.clipboard.writeText(buildAnswerCode()); $("copy-msg").textContent = "已复制，可以粘贴到微信里发送。"; }
+  catch (e) {
+    const range = document.createRange(); range.selectNodeContents($("code"));
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    $("copy-msg").textContent = "已选中答案码，请长按或按 Ctrl+C 复制。";
+  }
+}
+
+// ----------------------------------------------------------------- export
 function csvCell(value) {
   const text = String(value == null ? "" : value);
   return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
@@ -566,35 +636,34 @@ function buildCsv() {
   }
   return "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
+function fileName() { return "labels-" + state.set + "-" + (state.updatedAt || "").slice(0, 10) + ".csv"; }
 let downloads = null;
-async function openExport() {
+function openExport() {
   const { done, total } = progress();
-  $("export-intro").textContent = "已标 " + done + " / " + total + " 条。把下面的内容保存为 .csv 文件（或复制后粘贴发给协调人）。文件名建议：" + fileName();
+  $("export-intro").textContent = "已答 " + done + " / " + total + " 题。下面是表格内容（CSV），可以复制，或下载为文件。";
   $("csv").value = buildCsv();
   $("export-msg").textContent = "";
   $("save-csv").hidden = !(downloads || !window.claude);
   $("export").showModal();
 }
-function fileName() { return "labels-" + (state.annotator || "anon") + "-" + state.set + ".csv"; }
 async function copyCsv() {
-  const text = $("csv").value;
-  try { await navigator.clipboard.writeText(text); $("export-msg").textContent = "已复制。"; }
-  catch (e) { $("csv").select(); $("export-msg").textContent = "无法自动复制，已选中全部内容，请按 Ctrl+C / ⌘C。"; }
+  try { await navigator.clipboard.writeText($("csv").value); $("export-msg").textContent = "已复制。"; }
+  catch (e) { $("csv").select(); $("export-msg").textContent = "已选中全部内容，请按 Ctrl+C 复制。"; }
 }
 async function saveCsv() {
   const data = $("csv").value;
   if (downloads) {
     try { await downloads.save({ filename: fileName(), data }); $("export-msg").textContent = "已保存。"; }
-    catch (e) { $("export-msg").textContent = e && e.code === "declined" ? "已取消。" : "无法下载，请使用“复制”。"; }
+    catch (e) { $("export-msg").textContent = e && e.code === "declined" ? "已取消。" : "无法下载，请用“复制”。"; }
     return;
   }
-  // Outside the Claude viewer (e.g. a static host) a normal download link works.
+  // Outside the Claude viewer (a static host) a normal download link works.
   const url = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
-  el("a", { href: url, download: fileName() }).click();
+  const a = document.createElement("a"); a.href = url; a.download = fileName(); a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// --------------------------------------------------------- guide language
+// ---------------------------------------------------------- guide language
 const GUIDE_LANG_KEY = "suffiss-labeler-guide-lang";
 const GUIDE_TEXT = { zh: { title: "标注规则", close: "知道了" }, en: { title: "Labeling guide", close: "Got it" } };
 function setGuideLang(lang) {
@@ -609,51 +678,49 @@ function savedGuideLang() {
   try { return localStorage.getItem(GUIDE_LANG_KEY) || "zh"; } catch (e) { return "zh"; }
 }
 
-// -------------------------------------------------------------- start
-function startSubmit(event) {
-  event.preventDefault();
-  const name = $("annotator").value.trim().toLowerCase();
-  const err = (msg) => { $("start-err").textContent = msg; };
-  if (!NAME_RE.test(name) || name === "author") return err("代号只能用小写字母、数字、- 或 _，且不能是 author。");
-  if (!$("ack-guide").checked) return err("请先阅读标注规则并勾选。");
-  if (!$("ack-indep").checked) return err("请确认会独立完成。");
-  err("");
-  state.annotator = name;
-  state.set = $("set-full").checked ? "full" : "pilot";
-  state.scenario = 0;
-  touch();
-  route();
+// ------------------------------------------------------------------ route
+function route() {
+  const screen = !state.started ? "welcome" : state.finished ? "done" : "quiz";
+  for (const id of ["welcome", "quiz", "done"]) $(id).hidden = id !== screen;
+  if (screen === "welcome") renderWelcome();
+  if (screen === "quiz") renderQuiz();
+  if (screen === "done") renderDone();
 }
-
-// ----------------------------------------------------------- keyboard
 function onKey(event) {
-  if ($("work").hidden || document.querySelector("dialog[open]")) return;
+  if ($("quiz").hidden || document.querySelector("dialog[open]")) return;
   if (event.target.closest("input, textarea") || event.metaKey || event.ctrlKey || event.altKey) return;
   const key = event.key.toLowerCase();
-  const label = LABELS.find((l) => l.keys.includes(key));
-  if (label) { event.preventDefault(); setLabel(focusIdx, label.value); return; }
-  const moves = { arrowdown: () => setFocus(Math.min(4, focusIdx + 1), true), j: () => setFocus(Math.min(4, focusIdx + 1), true),
-    arrowup: () => setFocus(Math.max(0, focusIdx - 1), true), k: () => setFocus(Math.max(0, focusIdx - 1), true),
-    arrowright: () => go(state.scenario + 1), arrowleft: () => go(state.scenario - 1) };
-  if (moves[key]) { event.preventDefault(); moves[key](); }
+  const answer = ANSWERS.find((a) => a.keys.includes(key));
+  if (answer) { event.preventDefault(); choose(answer.value); return; }
+  if (key === "0") { event.preventDefault(); choose(SKIP); return; }
+  if (key === "arrowleft") { event.preventDefault(); goBack(); }
+  if (key === "arrowright" && !$("forward").disabled) { event.preventDefault(); goForward(); }
 }
 
-// --------------------------------------------------------------- boot
-document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
-$("open-guide").addEventListener("click", () => $("guide").showModal());
-document.querySelectorAll("#guide [data-lang-btn]").forEach((btn) => btn.addEventListener("click", () => setGuideLang(btn.dataset.langBtn)));
-setGuideLang(savedGuideLang());
-$("guide-link").addEventListener("click", (e) => { e.preventDefault(); $("guide").showModal(); });
+// ------------------------------------------------------------------- boot
+document.querySelectorAll("[data-bg]").forEach((b) => b.addEventListener("click", () => {
+  state.programmer = b.dataset.bg === "yes"; saveLocal(); renderWelcome(); $("welcome-err").textContent = "";
+}));
+$("start-pilot").addEventListener("click", () => start("pilot"));
+$("start-full").addEventListener("click", () => start("full"));
+$("resume").addEventListener("click", () => start(null));
+$("skip").addEventListener("click", () => choose(SKIP));
+$("back").addEventListener("click", goBack);
+$("forward").addEventListener("click", goForward);
+$("note").addEventListener("input", (e) => onNote(e.target.value));
+$("finish-early").addEventListener("click", showDone);
+$("review").addEventListener("click", () => { state.finished = false; state.pos = 0; saveLocal(); route(); });
+$("copy-code").addEventListener("click", copyCode);
 $("open-export").addEventListener("click", openExport);
-$("done-export").addEventListener("click", openExport);
 $("copy-csv").addEventListener("click", copyCsv);
 $("save-csv").addEventListener("click", saveCsv);
-$("prev").addEventListener("click", () => go(state.scenario - 1));
-$("next").addEventListener("click", () => go(state.scenario + 1));
-$("start-form").addEventListener("submit", startSubmit);
+$("open-guide").addEventListener("click", () => $("guide").showModal());
+document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+document.querySelectorAll("#guide [data-lang-btn]").forEach((btn) => btn.addEventListener("click", () => setGuideLang(btn.dataset.langBtn)));
 document.addEventListener("keydown", onKey);
-route();
+setGuideLang(savedGuideLang());
 setStatus("local");
+route();
 connect();
 if (window.claude && window.claude.use) window.claude.use("downloads").then((d) => { downloads = d; });
 </script>
