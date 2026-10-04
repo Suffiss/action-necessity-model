@@ -124,6 +124,12 @@ dialog::backdrop { background: rgba(10, 16, 14, 0.45); }
 .dlg { padding: 20px; display: grid; gap: 12px; }
 .dlg h2 { font-size: 20px; }
 .dlg h3 { font-size: 15px; margin-top: 6px; }
+.dlg-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.guide-body { display: grid; gap: 12px; }
+.lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.lang-switch button { border: 0; background: var(--panel); padding: 5px 12px; cursor: pointer; font-size: 13px; }
+.lang-switch button + button { border-left: 1px solid var(--line); }
+.lang-switch button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .dlg ol, .dlg ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .tbl-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -207,50 +213,105 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
 
 <dialog id="guide" aria-labelledby="guide-title">
   <div class="dlg">
-    <h2 id="guide-title">标注规则</h2>
-    <p><strong>问题：</strong>如果一个能干又高效的智能体处在这个情况下，它会做这一步吗？</p>
-    <h3>判断顺序（遇到能定论的就停）</h3>
-    <ol>
-      <li><b>目标是否已完成？</b>看历史结果。已完成时，只有汇报/结束是需要的；其余多余，除非是在确认确实还没确认过的东西。</li>
-      <li><b>是否已经做过同样或等价的事？</b>同工具、同目标、同参数，或只换了措辞的搜索。之后没有相关变化 → 通常多余；有相关变化（改了文件、删了记录、提交了表单）→ 重复可能需要。</li>
-      <li><b>上次失败了吗？</b>不会自己消失的错误（文件不存在、密钥无效、语法错误）原样重试 → 多余；可能是暂时的错误（超时、限流、服务不可用）→ 重试一次通常合理（需要或不确定）。</li>
-      <li><b>它能给出还需要的东西吗？</b>还没见过的信息、修改前的前置检查、确认改动生效。</li>
-      <li><b>是否与目标相称？</b>小目标却扫描整个仓库、导出整张表 → 多余。</li>
-    </ol>
-    <h3>常见情况（通用示例，不来自本数据集）</h3>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>情况</th><th>通常</th></tr></thead>
-      <tbody>
-        <tr><td>没有变化时重读同一个文件</td><td>多余</td></tr>
-        <tr><td>改完文件后读一次确认</td><td>需要（第一次确认）</td></tr>
-        <tr><td>对同一改动再确认一次</td><td>多余</td></tr>
-        <tr><td>代码没改，重跑已通过的测试</td><td>多余</td></tr>
-        <tr><td>改了代码后重跑测试</td><td>需要</td></tr>
-        <tr><td>只改了文档后跑测试</td><td>多余</td></tr>
-        <tr><td>超时后重试一次</td><td>不确定或需要</td></tr>
-        <tr><td>“凭证无效”后原样重试</td><td>多余</td></tr>
-        <tr><td>结果说被截断，读下一页</td><td>需要（如果目标需要剩下部分）</td></tr>
-        <tr><td>重复一个已成功的写操作（发消息、建记录）</td><td>多余，且可能有害</td></tr>
-        <tr><td>打开之前结果里出现的链接或文件</td><td>看情况：目标还需要 → 需要；答案已知 → 多余</td></tr>
-        <tr><td>小目标做大范围搜索</td><td>多余</td></tr>
-        <tr><td>目标本身就是大范围（“所有”“全部用法”）</td><td>需要</td></tr>
-        <tr><td>目标完成后汇报/结束</td><td>需要</td></tr>
-      </tbody>
-    </table></div>
-    <h3>不要判断的</h3>
-    <ul>
-      <li>动作是否安全、是否被允许、会不会成功——只判断是否必要。</li>
-      <li>你自己更喜欢的计划——只要它是朝目标的合理一步，就不要因为你会先做别的而判多余。</li>
-      <li>成本大小——便宜的多余动作仍是多余，昂贵但必要的仍是需要。</li>
-    </ul>
-    <h3>独立性</h3>
-    <ul>
-      <li>独自完成；所有人交卷前不讨论用例。</li>
-      <li>不看仓库里已有的标注、评估器的输出或源码。</li>
-      <li>用例看起来有问题（矛盾、看不懂）时，标“不确定”并在备注里说明。</li>
-    </ul>
-    <p class="hint">完整英文版：<a href="https://github.com/Suffiss/action-necessity-model/blob/main/docs/labeling-guide.md" target="_blank" rel="noopener">docs/labeling-guide.md</a></p>
-    <div class="row"><button class="btn primary" type="button" data-close>知道了</button></div>
+    <div class="dlg-head">
+      <h2 id="guide-title">标注规则</h2>
+      <div class="lang-switch" role="group" aria-label="语言 / Language">
+        <button type="button" data-lang-btn="zh" aria-pressed="true">中文</button>
+        <button type="button" data-lang-btn="en" aria-pressed="false">English</button>
+      </div>
+    </div>
+
+    <div class="guide-body" data-lang="zh" lang="zh">
+      <p><strong>问题：</strong>如果一个能干又高效的智能体处在这个情况下，它会做这一步吗？</p>
+      <h3>判断顺序（遇到能定论的就停）</h3>
+      <ol data-part="steps">
+        <li><b>目标是否已完成？</b>看历史结果。已完成时，只有汇报/结束是需要的；其余多余，除非是在确认确实还没确认过的东西。</li>
+        <li><b>是否已经做过同样或等价的事？</b>同工具、同目标、同参数，或只换了措辞的搜索。之后没有相关变化 → 通常多余；有相关变化（改了文件、删了记录、提交了表单）→ 重复可能需要。</li>
+        <li><b>上次失败了吗？</b>不会自己消失的错误（文件不存在、密钥无效、语法错误）原样重试 → 多余；可能是暂时的错误（超时、限流、服务不可用）→ 重试一次通常合理（需要或不确定）。</li>
+        <li><b>它能给出还需要的东西吗？</b>还没见过的信息、修改前的前置检查、确认改动生效。</li>
+        <li><b>是否与目标相称？</b>小目标却扫描整个仓库、导出整张表 → 多余。</li>
+      </ol>
+      <h3>常见情况（通用示例，不来自本数据集）</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>情况</th><th>通常</th></tr></thead>
+        <tbody data-part="patterns">
+          <tr><td>没有变化时重读同一个文件</td><td>多余</td></tr>
+          <tr><td>改完文件后读一次确认</td><td>需要（第一次确认）</td></tr>
+          <tr><td>对同一改动再确认一次</td><td>多余</td></tr>
+          <tr><td>代码没改，重跑已通过的测试</td><td>多余</td></tr>
+          <tr><td>改了代码后重跑测试</td><td>需要</td></tr>
+          <tr><td>只改了文档后跑测试</td><td>多余</td></tr>
+          <tr><td>超时后重试一次</td><td>不确定或需要</td></tr>
+          <tr><td>“凭证无效”后原样重试</td><td>多余</td></tr>
+          <tr><td>结果说被截断，读下一页</td><td>需要（如果目标需要剩下部分）</td></tr>
+          <tr><td>重复一个已成功的写操作（发消息、建记录）</td><td>多余，且可能有害</td></tr>
+          <tr><td>打开之前结果里出现的链接或文件</td><td>看情况：目标还需要 → 需要；答案已知 → 多余</td></tr>
+          <tr><td>小目标做大范围搜索</td><td>多余</td></tr>
+          <tr><td>目标本身就是大范围（“所有”“全部用法”）</td><td>需要</td></tr>
+          <tr><td>目标完成后汇报/结束</td><td>需要</td></tr>
+        </tbody>
+      </table></div>
+      <h3>不要判断的</h3>
+      <ul data-part="ignore">
+        <li>动作是否安全、是否被允许、会不会成功——只判断是否必要。</li>
+        <li>你自己更喜欢的计划——只要它是朝目标的合理一步，就不要因为你会先做别的而判多余。</li>
+        <li>成本大小——便宜的多余动作仍是多余，昂贵但必要的仍是需要。</li>
+      </ul>
+      <h3>独立性</h3>
+      <ul data-part="independence">
+        <li>独自完成；所有人交卷前不讨论用例。</li>
+        <li>不看仓库里已有的标注、评估器的输出或源码。</li>
+        <li>用例看起来有问题（矛盾、看不懂）时，标“不确定”并在备注里说明。</li>
+      </ul>
+      <p class="hint">完整版（英文）：<a href="https://github.com/Suffiss/action-necessity-model/blob/main/docs/labeling-guide.md" target="_blank" rel="noopener">docs/labeling-guide.md</a></p>
+    </div>
+
+    <div class="guide-body" data-lang="en" lang="en" hidden>
+      <p><strong>The question:</strong> If a competent, efficient agent were in this exact situation, would it take this next action?</p>
+      <h3>How to judge (stop at the first question that settles it)</h3>
+      <ol data-part="steps">
+        <li><b>Is the goal already achieved?</b> Check the history and its results. If so, only reporting back or finishing is necessary; everything else is unnecessary, unless it checks something that is genuinely still unverified.</li>
+        <li><b>Has the agent already done this, or something equivalent?</b> Same tool, same target, same arguments, or a trivially reworded search. If nothing relevant changed since, it is usually unnecessary; if something relevant changed (a file edited, a record deleted, a page submitted), repeating can be necessary.</li>
+        <li><b>Did it fail last time?</b> A failure that will not go away by itself (file not found, invalid key, syntax error), retried with nothing changed: unnecessary. A failure that might be temporary (timeout, rate limit, "service unavailable"): one retry is usually reasonable (necessary or uncertain).</li>
+        <li><b>Does it give the agent something it still needs?</b> Information not yet seen, a prerequisite before changing something, or confirmation that a change worked.</li>
+        <li><b>Is it proportionate to the goal?</b> Scanning the whole repository or dumping an entire table for a small, specific goal is unnecessary.</li>
+      </ol>
+      <h3>Common patterns (generic examples, not from this dataset)</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Situation</th><th>Typical label</th></tr></thead>
+        <tbody data-part="patterns">
+          <tr><td>Reading a file again with no change in between</td><td>unnecessary</td></tr>
+          <tr><td>Reading a file again after editing it, to confirm the edit</td><td>necessary (the first confirmation)</td></tr>
+          <tr><td>Confirming the same edit a second time</td><td>unnecessary</td></tr>
+          <tr><td>Re-running a passing test suite with no code change</td><td>unnecessary</td></tr>
+          <tr><td>Re-running tests after changing code</td><td>necessary</td></tr>
+          <tr><td>Re-running tests after changing only documentation</td><td>unnecessary</td></tr>
+          <tr><td>Retrying a timed-out request once</td><td>uncertain or necessary</td></tr>
+          <tr><td>Retrying the same request after "invalid credentials"</td><td>unnecessary</td></tr>
+          <tr><td>Reading the next page of a result that said it was truncated</td><td>necessary, if the goal needs the rest</td></tr>
+          <tr><td>Repeating a write that already succeeded (sending a message, creating a record)</td><td>unnecessary, and possibly harmful</td></tr>
+          <tr><td>Opening a link or file that an earlier result pointed to</td><td>depends: necessary if the goal still needs it, unnecessary if the answer is already known</td></tr>
+          <tr><td>Wide search for a narrow goal</td><td>unnecessary</td></tr>
+          <tr><td>Wide search when the goal itself is wide ("everywhere", "all usages")</td><td>necessary</td></tr>
+          <tr><td>Finishing or reporting when the goal is done</td><td>necessary</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Things not to judge</h3>
+      <ul data-part="ignore">
+        <li>Whether the action is safe, allowed or will succeed. Only consider whether it is needed.</li>
+        <li>Your own preferred plan. If the action is a reasonable step towards the goal, do not mark it unnecessary just because you would have done something else first.</li>
+        <li>Cost size. A cheap redundant action is still unnecessary; an expensive but needed one is still necessary.</li>
+      </ul>
+      <h3>Independence</h3>
+      <ul data-part="independence">
+        <li>Label alone. Do not discuss cases with other annotators until everyone has handed in.</li>
+        <li>Do not look at existing labels in the repository, the gate's output, or its source code.</li>
+        <li>If a case seems broken (contradictory or unreadable), label it uncertain and say so in the note.</li>
+      </ul>
+      <p class="hint">Full guide: <a href="https://github.com/Suffiss/action-necessity-model/blob/main/docs/labeling-guide.md" target="_blank" rel="noopener">docs/labeling-guide.md</a></p>
+    </div>
+
+    <div class="row"><button class="btn primary" type="button" data-close id="guide-close">知道了</button></div>
   </div>
 </dialog>
 
@@ -533,6 +594,21 @@ async function saveCsv() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// --------------------------------------------------------- guide language
+const GUIDE_LANG_KEY = "suffiss-labeler-guide-lang";
+const GUIDE_TEXT = { zh: { title: "标注规则", close: "知道了" }, en: { title: "Labeling guide", close: "Got it" } };
+function setGuideLang(lang) {
+  if (!GUIDE_TEXT[lang]) lang = "zh";
+  document.querySelectorAll("#guide .guide-body").forEach((body) => { body.hidden = body.dataset.lang !== lang; });
+  document.querySelectorAll("#guide [data-lang-btn]").forEach((btn) => btn.setAttribute("aria-pressed", String(btn.dataset.langBtn === lang)));
+  $("guide-title").textContent = GUIDE_TEXT[lang].title;
+  $("guide-close").textContent = GUIDE_TEXT[lang].close;
+  try { localStorage.setItem(GUIDE_LANG_KEY, lang); } catch (e) { /* storage blocked: the choice lasts for this visit only */ }
+}
+function savedGuideLang() {
+  try { return localStorage.getItem(GUIDE_LANG_KEY) || "zh"; } catch (e) { return "zh"; }
+}
+
 // -------------------------------------------------------------- start
 function startSubmit(event) {
   event.preventDefault();
@@ -565,6 +641,8 @@ function onKey(event) {
 // --------------------------------------------------------------- boot
 document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
 $("open-guide").addEventListener("click", () => $("guide").showModal());
+document.querySelectorAll("#guide [data-lang-btn]").forEach((btn) => btn.addEventListener("click", () => setGuideLang(btn.dataset.langBtn)));
+setGuideLang(savedGuideLang());
 $("guide-link").addEventListener("click", (e) => { e.preventDefault(); $("guide").showModal(); });
 $("open-export").addEventListener("click", openExport);
 $("done-export").addEventListener("click", openExport);
