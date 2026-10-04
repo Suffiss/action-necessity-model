@@ -1,7 +1,16 @@
 import pytest
 
 from suffiss.necessity.models import Action
-from suffiss.necessity.rules import ActionKind, ResultStatus, classify_action, classify_result, is_doc_path, is_mutating
+from suffiss.necessity.rules import (
+    ActionKind,
+    ResultStatus,
+    classify_action,
+    classify_result,
+    is_doc_path,
+    is_mutating,
+    is_truncated,
+    mentions_target,
+)
 
 
 @pytest.mark.parametrize(
@@ -58,3 +67,32 @@ def test_classify_action(action: Action, kind: ActionKind, mutating: bool) -> No
 )
 def test_is_doc_path(path: str, expected: bool) -> None:
     assert is_doc_path(path) is expected
+
+
+@pytest.mark.parametrize(
+    ("result", "expected"),
+    [
+        ("80: (truncated, showing lines 1-80 of 200)", True),
+        ("Showing results 21 to 40 of 97", True),
+        ('{"items": [], "has_more": true}', True),
+        ("Page 1 of 9", True),
+        ("all 12 rows returned", False),
+        ("untruncatedness is a made-up word", False),
+    ],
+)
+def test_is_truncated(result: str, expected: bool) -> None:
+    assert is_truncated(result) is expected
+
+
+@pytest.mark.parametrize(
+    ("result", "target", "expected"),
+    [
+        (r"src\cache.py:12: def evict()", "src/cache.py", True),
+        ("1. Survey - arxiv.org/abs/2009.06732", "https://arxiv.org/abs/2009.06732", True),
+        ("see www.example.com/docs", "https://www.example.com/docs", True),
+        ("src/cache.py:12: def evict()", "src/other.py", False),
+        ("a.b", "a.b", False),
+    ],
+)
+def test_mentions_target(result: str, target: str, expected: bool) -> None:
+    assert mentions_target(result, target) is expected

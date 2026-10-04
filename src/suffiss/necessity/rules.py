@@ -194,6 +194,24 @@ def classify_result(result: str) -> ResultStatus:
     return ResultStatus.SUCCESS
 
 
+_TRUNCATED = re.compile(
+    r"\btruncated\b|\bshowing (?:lines|results|items|rows) \d+\s*(?:-|to)\s*\d+ of \d+|\bpage \d+ of \d+\b|"
+    r"\bmore results\b|\.\.\. ?and \d+ more\b|\bhas_more\W+true\b|\bnext.?page\b",
+    re.I,
+)
+
+
+def is_truncated(result: str) -> bool:
+    """Whether a result says explicitly that it is only part of the output."""
+    return bool(_TRUNCATED.search(result))
+
+
+def mentions_target(result: str, target: str) -> bool:
+    """Whether an earlier result surfaced this file path or URL as a lead."""
+    bare = re.sub(r"^[a-z]+://(?:www\.)?", "", target)
+    return len(bare) >= 4 and bare in result.replace("\\", "/").lower()
+
+
 # ----------------------------------------------------------- state snapshot
 
 _CHANGE_WORDS = re.compile(
