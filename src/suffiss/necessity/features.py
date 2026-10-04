@@ -24,7 +24,9 @@ from suffiss.necessity.rules import (
     is_doc_path,
     is_mutating,
     is_test_run,
+    is_truncated,
     knowledge_gaps,
+    mentions_target,
     overlap_coefficient,
     state_reports_change,
     target_of,
@@ -62,6 +64,8 @@ class Features:
     concepts_disjoint: bool
     match: HistoryMatch | None
     post_change_observation: bool
+    continuation: bool
+    follow_up: bool
     verification_candidate: bool
     prerequisite: bool
     information_need: bool
@@ -96,6 +100,8 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
         concepts_disjoint=disjoint,
         match=match,
         post_change_observation=verify_from is not None and prep.kind is not ActionKind.EXECUTE,
+        continuation=match is None and _continues_truncated_result(prep),
+        follow_up=match is None and _follows_lead(prep),
         verification_candidate=verify_from is not None and (match is None or match.index < verify_from),
         prerequisite=_is_prerequisite(prep, match, verify_from),
         information_need=_has_information_need(prep, match),
@@ -180,6 +186,22 @@ def _relevance(goal_text: str, goal: frozenset[str], action: frozenset[str]) -> 
     concept_score = overlap_coefficient(goal_concepts, action_concepts)
     disjoint = bool(goal_concepts and action_concepts) and concept_score == 0.0 and token_score == 0.0
     return max(token_score, concept_score), disjoint
+
+
+def _continues_truncated_result(prep: _Prepared) -> bool:
+    """Same tool and target as an earlier call whose output was cut off."""
+    proposed = prep.context.proposed_action
+    target = target_of(proposed)
+    return any(
+        record.action.tool == proposed.tool and target_of(record.action) == target and is_truncated(record.result)
+        for record in prep.context.history
+    )
+
+
+def _follows_lead(prep: _Prepared) -> bool:
+    """The proposed target was surfaced by an earlier result (search hit, link)."""
+    target = target_of(prep.context.proposed_action)
+    return target is not None and any(mentions_target(record.result, target) for record in prep.context.history)
 
 
 def _related(left: frozenset[str] | set[str], right: frozenset[str] | set[str]) -> bool:

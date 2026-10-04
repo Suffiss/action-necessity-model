@@ -3,7 +3,9 @@ from _builders import act, judge, read, rec
 
 from suffiss.necessity.adapters import AdapterAssessment
 from suffiss.necessity.evaluator import Evaluator, EvaluatorConfig, Thresholds, evaluate_action
+from suffiss.necessity.features import extract_features
 from suffiss.necessity.models import ActionContext, Decision, ReasonCode
+from suffiss.necessity.similarity import LexicalSimilarity
 
 
 def test_overly_broad_action_for_narrow_goal_is_unnecessary() -> None:
@@ -118,3 +120,49 @@ def test_relevance_counts_the_goal_clause_the_action_serves() -> None:
     )
     assert decision.signals.goal_relevance >= 0.3
     assert decision.decision is not Decision.UNNECESSARY
+
+
+def test_paging_through_truncated_output_is_necessary() -> None:
+    first = act("api_call", "list_tickets", "List open tickets", status="open", page=1)
+    decision = judge(
+        "Count the open tickets assigned to nobody",
+        act("api_call", "list_tickets", "List open tickets", status="open", page=2),
+        history=[rec(first, "Showing items 1-50 of 212\n#101 unassigned\n...")],
+    )
+    assert decision.decision is Decision.NECESSARY
+    assert decision.reason_code is ReasonCode.NEW_INFORMATION_REQUIRED
+
+
+@pytest.mark.parametrize(("result", "expected"), [("Showing items 1-50 of 212", True), ("#101 unassigned", False)])
+def test_continuation_requires_an_explicitly_truncated_result(result: str, expected: bool) -> None:
+    first = act("api_call", "list_tickets", "List open tickets", status="open", page=1)
+    context = ActionContext.from_dict(
+        {
+            "goal": "Count the open tickets assigned to nobody",
+            "history": [rec(first, result)],
+            "proposed_action": act("api_call", "list_tickets", "List open tickets", status="open", page=2),
+        }
+    )
+    assert extract_features(context, LexicalSimilarity(), 0.95).continuation is expected
+
+
+def test_following_a_lead_from_search_results_is_necessary() -> None:
+    decision = judge(
+        "Find the cause of the memory leak",
+        read("workers/pool.py"),
+        history=[rec(act("search", "grep", "Search for leak", query="leak"), "workers/pool.py:88: # FIXME: leak on retry")],
+    )
+    assert decision.decision is Decision.NECESSARY
+    assert decision.reason_code is ReasonCode.NEW_INFORMATION_REQUIRED
+
+
+def test_rereading_a_lead_already_followed_is_still_duplicate() -> None:
+    decision = judge(
+        "Find the cause of the memory leak",
+        read("workers/pool.py"),
+        history=[
+            rec(act("search", "grep", "Search for leak", query="leak"), "workers/pool.py:88: # FIXME: leak on retry"),
+            rec(read("workers/pool.py"), "class Pool: ..."),
+        ],
+    )
+    assert decision.decision is Decision.UNNECESSARY
