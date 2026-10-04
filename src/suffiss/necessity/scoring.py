@@ -42,6 +42,8 @@ class ScoringWeights:
     state_change: float = 0.35  # must offset most of `duplicate`: changed state makes repeats legitimate
     verification: float = 0.30
     polling: float = 0.20
+    continuation: float = 0.25  # paging through output the agent already chose to read
+    follow_up: float = 0.25  # acting on a lead an earlier result surfaced
     finish: float = 0.30
     # Penalties. A lone exact duplicate (0.5) is enough to block; most other
     # single penalties only push into "uncertain" unless corroborated.
@@ -79,6 +81,10 @@ def _support(f: Features, w: ScoringWeights) -> list[Contribution]:
             items.append(Contribution(novel_reason, w.novelty))
     if f.information_need:
         items.append(Contribution(ReasonCode.NEW_INFORMATION_REQUIRED, w.information_need))
+    if f.continuation:
+        items.append(Contribution(ReasonCode.NEW_INFORMATION_REQUIRED, w.continuation))
+    if f.follow_up:
+        items.append(Contribution(ReasonCode.NEW_INFORMATION_REQUIRED, w.follow_up))
     if f.prerequisite:
         items.append(Contribution(ReasonCode.PREREQUISITE_ACTION, w.prerequisite))
     if f.match is not None and f.match.changed_since:
@@ -99,9 +105,9 @@ def _penalties(f: Features, w: ScoringWeights) -> list[Contribution]:
     if f.broad_action and f.goal_scope != "broad":
         penalty = w.scope_narrow_goal if f.goal_scope == "narrow" else w.scope_neutral_goal
         items.append(Contribution(ReasonCode.SCOPE_TOO_BROAD, -penalty))
-    # Verifying the agent's own change inherits that change's relevance, even
-    # when the verification (e.g. a test run) shares no words with the goal.
-    if f.verification_candidate:
+    # Verifying a change, continuing truncated output, or following a lead
+    # inherits relevance from the earlier step, even without shared words.
+    if f.verification_candidate or f.continuation or f.follow_up:
         return items
     if f.concepts_disjoint:
         items.append(Contribution(ReasonCode.LOW_GOAL_RELEVANCE, -w.unrelated))
@@ -120,9 +126,10 @@ def _repeat_penalties(f: Features, w: ScoringWeights) -> list[Contribution]:
         return [Contribution(ReasonCode.UNCHANGED_RETRY, -w.transient_retry * min(match.repeat_count, 3))]
     if match.status is ResultStatus.PENDING:
         return []
-    # Writes often carry their payload outside the arguments we see, so an
-    # "identical" write is weaker evidence of redundancy than an identical read.
-    scale = 0.5 if f.mutating else 1.0
+    # A write identified only by its file (edit_file(path)) usually carries its
+    # real payload elsewhere, so matching arguments are weak evidence of a
+    # repeat. Writes whose arguments include the payload get the full penalty.
+    scale = 0.5 if f.mutating and not f.payload_visible else 1.0
     reason = ReasonCode.REDUNDANT_VERIFICATION if match.after_target_mutation else ReasonCode.DUPLICATE_ACTION
     return [Contribution(reason, -w.duplicate * match.similarity * scale)]
 

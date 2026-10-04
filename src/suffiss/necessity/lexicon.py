@@ -77,6 +77,8 @@ MUTATING_COMMAND_WORDS = frozenset(
 TEST_COMMAND_WORDS = frozenset("test tests pytest jest unittest mocha vitest tox nox check spec".split())
 
 DOC_EXTENSIONS = frozenset({".md", ".rst", ".txt", ".adoc"})
+# Conventional documentation files that usually have no extension.
+DOC_FILENAMES = frozenset({"license", "licence", "readme", "changelog", "notice", "authors", "contributors", "contributing", "copying"})
 
 # Actions scanning far more than a narrow goal needs.
 BROAD_TOOL_WORDS = frozenset({"index", "crawl", "scan"})

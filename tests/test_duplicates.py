@@ -70,3 +70,23 @@ def test_queries_differing_only_in_operator_are_not_duplicates() -> None:
     )
     assert decision.reason_code is not ReasonCode.DUPLICATE_ACTION
     assert decision.decision is not Decision.UNNECESSARY
+
+
+def test_repeating_a_successful_write_with_identical_payload_is_unnecessary() -> None:
+    post = act("api_call", "post_message", "Announce the release", channel="#releases", text="v1.4.0 is out")
+    decision = judge(
+        "Announce the v1.4.0 release in the releases channel",
+        post,
+        history=[rec(post, "Message posted (ts=1712.55)")],
+    )
+    assert decision.decision is Decision.UNNECESSARY
+    assert decision.reason_code is ReasonCode.DUPLICATE_ACTION
+
+
+def test_repeating_a_path_only_edit_is_not_confidently_blocked() -> None:
+    decision = judge(
+        "Clean up the wording in docs/intro.md and docs/setup.md",
+        edit("docs/intro.md"),
+        history=[rec(edit("docs/intro.md"), "ok")],
+    )
+    assert decision.decision is not Decision.UNNECESSARY

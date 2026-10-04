@@ -14,7 +14,7 @@ from typing import Any, Iterable
 
 from suffiss.necessity import lexicon
 from suffiss.necessity.models import Action
-from suffiss.necessity.similarity import normalize_path, tokenize
+from suffiss.necessity.similarity import normalize_arguments, normalize_path, tokenize
 
 
 class ActionKind(StrEnum):
@@ -128,6 +128,15 @@ def is_test_run(action: Action) -> bool:
     return bool(set(tokenize(text)) & lexicon.TEST_COMMAND_WORDS)
 
 
+_FILE_KEYS = frozenset({"path", "file", "file_path", "filepath", "filename"})
+
+
+def has_visible_payload(action: Action) -> bool:
+    """Whether the arguments carry more than a file location (e.g. a title or message)."""
+    keys = set(normalize_arguments(action.arguments))
+    return bool(keys - _FILE_KEYS)
+
+
 def target_of(action: Action) -> str | None:
     args = {key.lower(): value for key, value in action.arguments.items()}
     for key in _TARGET_KEYS:
@@ -144,7 +153,10 @@ def targets_related(left: str, right: str) -> bool:
 
 
 def is_doc_path(path: str) -> bool:
-    return PurePosixPath(path).suffix in lexicon.DOC_EXTENSIONS or path.startswith("docs/")
+    file = PurePosixPath(path)
+    if file.suffix in lexicon.DOC_EXTENSIONS or path.startswith("docs/"):
+        return True
+    return not file.suffix and file.name in lexicon.DOC_FILENAMES
 
 
 def is_broad_action(action: Action) -> bool:
@@ -189,6 +201,24 @@ def classify_result(result: str) -> ResultStatus:
     if _PENDING.search(result):
         return ResultStatus.PENDING
     return ResultStatus.SUCCESS
+
+
+_TRUNCATED = re.compile(
+    r"\btruncated\b|\bshowing (?:lines|results|items|rows) \d+\s*(?:-|to)\s*\d+ of \d+|\bpage \d+ of \d+\b|"
+    r"\bmore results\b|\.\.\. ?and \d+ more\b|\bhas_more\W+true\b|\bnext.?page\b",
+    re.I,
+)
+
+
+def is_truncated(result: str) -> bool:
+    """Whether a result says explicitly that it is only part of the output."""
+    return bool(_TRUNCATED.search(result))
+
+
+def mentions_target(result: str, target: str) -> bool:
+    """Whether an earlier result surfaced this file path or URL as a lead."""
+    bare = re.sub(r"^[a-z]+://(?:www\.)?", "", target)
+    return len(bare) >= 4 and bare in result.replace("\\", "/").lower()
 
 
 # ----------------------------------------------------------- state snapshot
