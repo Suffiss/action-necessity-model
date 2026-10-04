@@ -182,11 +182,31 @@ _FAILURE = re.compile(
     re.I | re.M,
 )
 _PENDING = re.compile(r"\b(?:pending|running|in.progress|queued|processing|not ready|waiting)\b", re.I)
+_ACCESS_FAILURE = re.compile(
+    r"no such file|permission denied|is a directory|file not found|cannot (?:open|access)|does not exist", re.I
+)
 
 
-def classify_result(result: str) -> ResultStatus:
+def returns_file_content(action: Action, kind: ActionKind | None = None) -> bool:
+    """Reads and searches over files return content, not a status report."""
+    kind = kind or classify_action(action)
+    if kind is ActionKind.SEARCH:
+        return True
+    target = target_of(action)
+    return kind is ActionKind.READ and target is not None and "://" not in target and "table" not in action.arguments
+
+
+def classify_result(result: str, *, content: bool = False) -> ResultStatus:
+    """Status of an action from its result text.
+
+    With ``content=True`` (file reads, searches) the text is the file's own
+    content: a log full of tracebacks is a successful read, so only explicit
+    access errors count as failure.
+    """
     if not result.strip():
         return ResultStatus.UNKNOWN
+    if content:
+        return ResultStatus.FAILURE if _ACCESS_FAILURE.search(result) else ResultStatus.SUCCESS
     if _TRANSIENT.search(result):
         return ResultStatus.TRANSIENT_FAILURE
     exit_code = _EXIT_CODE.search(result)
