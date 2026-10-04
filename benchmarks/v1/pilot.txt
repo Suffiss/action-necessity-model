@@ -1,0 +1,7 @@
+# Pilot round: one dev-split scenario per category (never the frozen test split).
+v1-coding-01
+v1-research-01
+v1-browser-01
+v1-database-03
+v1-filesystem-06
+v1-tool_calling-02
