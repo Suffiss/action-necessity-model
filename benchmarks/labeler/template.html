@@ -1,0 +1,581 @@
+<title>Necessity Labeler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky toolbar; scenario context (goal, history) on the left, the five candidate actions to judge on the right; one column on phones. */
+:root {
+  --paper: #f3f5f2;
+  --panel: #ffffff;
+  --ink: #18201d;
+  --muted: #5a6560;
+  --line: #d6ddd8;
+  --accent: #23577a;
+  --accent-ink: #ffffff;
+  --code-bg: #eef1ee;
+  --nec: #23784a;
+  --nec-soft: #e2f1e7;
+  --unn: #a8422c;
+  --unn-soft: #f6e4df;
+  --unc: #8e6a0e;
+  --unc-soft: #f5edd6;
+  --focus: #23577a;
+  --font-body: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131917; --panel: #1b2320; --ink: #e4ebe7; --muted: #9aa8a1; --line: #2e3a35;
+    --accent: #7fb2d6; --accent-ink: #0d1a22; --code-bg: #222c28;
+    --nec: #6cc796; --nec-soft: #1d3428; --unn: #ec8b74; --unn-soft: #3a231d; --unc: #e0b54c; --unc-soft: #352c15;
+    --focus: #7fb2d6; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131917; --panel: #1b2320; --ink: #e4ebe7; --muted: #9aa8a1; --line: #2e3a35;
+  --accent: #7fb2d6; --accent-ink: #0d1a22; --code-bg: #222c28;
+  --nec: #6cc796; --nec-soft: #1d3428; --unn: #ec8b74; --unn-soft: #3a231d; --unc: #e0b54c; --unc-soft: #352c15;
+  --focus: #7fb2d6; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+/* Components set their own display, which would otherwise override the hidden attribute on static hosts. */
+[hidden] { display: none !important; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--font-body); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; }
+
+/* toolbar */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line); }
+.bar-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding-block: 10px; }
+.brand { font-weight: 600; letter-spacing: 0.01em; }
+.brand small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.meter { flex: 1 1 220px; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.meter-track { flex: 1; height: 6px; background: var(--code-bg); border-radius: 3px; overflow: hidden; }
+.meter-fill { height: 100%; background: var(--accent); width: 0; transition: width 0.25s; }
+.meter-text { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; font-size: 13px; }
+.status { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.status[data-tone="ok"] { color: var(--nec); border-color: var(--nec); }
+.status[data-tone="warn"] { color: var(--unc); border-color: var(--unc); }
+.status[data-tone="bad"] { color: var(--unn); border-color: var(--unn); }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* start */
+.start { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding-block: 40px; }
+.start h1 { font-size: 26px; margin-bottom: 10px; }
+.lede { color: var(--muted); max-width: 60ch; }
+.form { display: grid; gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; align-self: start; }
+.field { display: grid; gap: 6px; }
+.field label, .legend { font-weight: 500; }
+.hint { color: var(--muted); font-size: 13px; }
+.text { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; background: var(--paper); }
+.choice { display: flex; gap: 8px; align-items: flex-start; }
+.choice input { margin-top: 4px; }
+.err { color: var(--unn); font-size: 13px; min-height: 1.2em; }
+.qbox { border-left: 3px solid var(--accent); padding: 8px 14px; background: var(--panel); margin-block: 18px; }
+
+/* work */
+.scen-nav { display: flex; flex-wrap: wrap; gap: 6px; padding-block: 14px 4px; }
+.chip { font: 12px/1 var(--font-mono); padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-variant-numeric: tabular-nums; }
+.chip[data-done="all"] { background: var(--nec-soft); border-color: var(--nec); }
+.chip[data-done="some"] { background: var(--unc-soft); border-color: var(--unc); }
+.chip[aria-current="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; padding-block: 12px 32px; align-items: start; }
+.context { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 64px); max-height: calc(100dvh - 90px); overflow: auto; }
+.eyebrow { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.goal { font-size: 18px; font-weight: 600; margin: 4px 0 12px; }
+.state { background: var(--code-bg); border-radius: 4px; padding: 8px 10px; margin-bottom: 12px; }
+.timeline { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
+.step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+.step-n { font: 12px/24px var(--font-mono); color: var(--muted); text-align: right; }
+.tool { font: 500 12px/1 var(--font-mono); background: var(--code-bg); border-radius: 3px; padding: 3px 6px; margin-right: 6px; white-space: nowrap; }
+.args { display: block; color: var(--muted); font: 12px/1.5 var(--font-mono); word-break: break-word; margin-top: 2px; }
+.result { margin: 6px 0 0; padding: 8px 10px; background: var(--code-bg); border-radius: 4px; font: 12px/1.5 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
+.empty-hist { color: var(--muted); font-style: italic; }
+
+.cands { display: grid; gap: 12px; }
+.cands-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.keys { color: var(--muted); font-size: 12px; }
+.keys kbd { font: 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; background: var(--panel); }
+.cand { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; }
+.cand[data-focus="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cand-head { display: flex; gap: 10px; align-items: baseline; }
+.letter { font: 600 13px var(--font-mono); color: var(--muted); }
+.cand-desc { font-weight: 500; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); padding: 8px 6px; cursor: pointer; display: flex; justify-content: center; gap: 6px; align-items: baseline; }
+.seg button small { font: 11px var(--font-mono); color: var(--muted); }
+.seg button[data-label="necessary"][aria-pressed="true"] { background: var(--nec-soft); border-color: var(--nec); color: var(--nec); font-weight: 600; }
+.seg button[data-label="unnecessary"][aria-pressed="true"] { background: var(--unn-soft); border-color: var(--unn); color: var(--unn); font-weight: 600; }
+.seg button[data-label="uncertain"][aria-pressed="true"] { background: var(--unc-soft); border-color: var(--unc); color: var(--unc); font-weight: 600; }
+.note { width: 100%; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px; background: var(--paper); font-size: 13px; }
+.pager { display: flex; justify-content: space-between; gap: 10px; }
+.banner { background: var(--nec-soft); border: 1px solid var(--nec); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+
+/* dialogs */
+dialog { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 0; width: min(760px, calc(100% - 32px)); max-height: calc(100dvh - 48px); }
+dialog::backdrop { background: rgba(10, 16, 14, 0.45); }
+.dlg { padding: 20px; display: grid; gap: 12px; }
+.dlg h2 { font-size: 20px; }
+.dlg h3 { font-size: 15px; margin-top: 6px; }
+.dlg ol, .dlg ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.csv { width: 100%; min-height: 220px; font: 12px/1.4 var(--font-mono); border: 1px solid var(--line); border-radius: var(--radius); background: var(--code-bg); padding: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 900px) {
+  .start, .layout { grid-template-columns: minmax(0, 1fr); }
+  .context { position: static; max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { .meter-fill { transition: none; } }
+</style>
+
+<header class="bar">
+  <div class="wrap bar-inner">
+    <div class="brand">动作必要性标注<small id="who"></small></div>
+    <div class="meter" id="meter" hidden>
+      <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
+      <span class="meter-text" id="meter-text"></span>
+    </div>
+    <span class="status" id="status" data-tone="">本地模式</span>
+    <button class="btn" id="open-guide" type="button">标注规则</button>
+    <button class="btn" id="open-export" type="button" hidden>导出 CSV</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="start" id="start">
+    <div>
+      <h1>判断 AI 智能体的下一步是否必要</h1>
+      <p class="lede">每个场景给出一个智能体的目标、它已经做过的动作（及结果），以及 5 个它<em>可能</em>采取的下一步。请逐个判断每个下一步是否必要。</p>
+      <div class="qbox"><strong>核心问题：</strong>如果一个能干又高效的智能体处在这个情况下，它会做这一步吗？</div>
+      <ul class="lede">
+        <li><b>需要</b>：跳过会影响目标，或缺少它合理需要的信息或确认。</li>
+        <li><b>多余</b>：跳过不影响目标——重复、得不到新信息、超出目标范围，或目标已完成。</li>
+        <li><b>不确定</b>：认真的人也可能意见不同，或信息不足以判断。这是有效答案。</li>
+      </ul>
+      <p class="hint">答案只保存你自己的；其他标注人看不到，你也看不到他们的。</p>
+    </div>
+    <form class="form" id="start-form" novalidate>
+      <div class="field">
+        <label for="annotator">你的代号</label>
+        <input class="text mono" id="annotator" autocomplete="off" spellcheck="false" placeholder="例如 lin" maxlength="32">
+        <span class="hint">小写字母、数字、- 或 _，用于区分标注人。</span>
+      </div>
+      <fieldset class="field" style="border:0;padding:0;margin:0">
+        <span class="legend">任务</span>
+        <label class="choice"><input type="radio" name="set" id="set-pilot" value="pilot" checked><span>试点：6 个场景，30 条（约 20 分钟）</span></label>
+        <label class="choice"><input type="radio" name="set" id="set-full" value="full"><span>全部：60 个场景，300 条（约 3 小时，可分多次）</span></label>
+      </fieldset>
+      <label class="choice"><input type="checkbox" id="ack-guide"><span>我已读过<a href="#" id="guide-link">标注规则</a></span></label>
+      <label class="choice"><input type="checkbox" id="ack-indep"><span>我会独立完成，完成前不和其他标注人讨论</span></label>
+      <div class="err" id="start-err" role="alert"></div>
+      <button class="btn primary" type="submit" id="start-btn">开始标注</button>
+    </form>
+  </section>
+
+  <section id="work" hidden>
+    <nav class="scen-nav" id="scen-nav" aria-label="场景"></nav>
+    <div class="banner" id="done-banner" hidden>
+      <span><strong>全部完成。</strong><span id="done-text"></span></span>
+      <button class="btn primary" type="button" id="done-export">导出 CSV</button>
+    </div>
+    <div class="layout">
+      <article class="context" id="context" aria-label="场景信息"></article>
+      <section class="cands" aria-label="候选的下一步">
+        <div class="cands-head">
+          <h2 style="font-size:16px">候选的下一步</h2>
+          <span class="keys"><kbd>N</kbd> 需要 · <kbd>U</kbd> 多余 · <kbd>?</kbd> 不确定 · <kbd>↑</kbd><kbd>↓</kbd> 选择 · <kbd>←</kbd><kbd>→</kbd> 换场景</span>
+        </div>
+        <div id="cands" class="cands"></div>
+        <div class="pager">
+          <button class="btn" type="button" id="prev">← 上一个场景</button>
+          <button class="btn primary" type="button" id="next">下一个场景 →</button>
+        </div>
+      </section>
+    </div>
+  </section>
+</main>
+
+<dialog id="guide" aria-labelledby="guide-title">
+  <div class="dlg">
+    <h2 id="guide-title">标注规则</h2>
+    <p><strong>问题：</strong>如果一个能干又高效的智能体处在这个情况下，它会做这一步吗？</p>
+    <h3>判断顺序（遇到能定论的就停）</h3>
+    <ol>
+      <li><b>目标是否已完成？</b>看历史结果。已完成时，只有汇报/结束是需要的；其余多余，除非是在确认确实还没确认过的东西。</li>
+      <li><b>是否已经做过同样或等价的事？</b>同工具、同目标、同参数，或只换了措辞的搜索。之后没有相关变化 → 通常多余；有相关变化（改了文件、删了记录、提交了表单）→ 重复可能需要。</li>
+      <li><b>上次失败了吗？</b>不会自己消失的错误（文件不存在、密钥无效、语法错误）原样重试 → 多余；可能是暂时的错误（超时、限流、服务不可用）→ 重试一次通常合理（需要或不确定）。</li>
+      <li><b>它能给出还需要的东西吗？</b>还没见过的信息、修改前的前置检查、确认改动生效。</li>
+      <li><b>是否与目标相称？</b>小目标却扫描整个仓库、导出整张表 → 多余。</li>
+    </ol>
+    <h3>常见情况（通用示例，不来自本数据集）</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>情况</th><th>通常</th></tr></thead>
+      <tbody>
+        <tr><td>没有变化时重读同一个文件</td><td>多余</td></tr>
+        <tr><td>改完文件后读一次确认</td><td>需要（第一次确认）</td></tr>
+        <tr><td>对同一改动再确认一次</td><td>多余</td></tr>
+        <tr><td>代码没改，重跑已通过的测试</td><td>多余</td></tr>
+        <tr><td>改了代码后重跑测试</td><td>需要</td></tr>
+        <tr><td>只改了文档后跑测试</td><td>多余</td></tr>
+        <tr><td>超时后重试一次</td><td>不确定或需要</td></tr>
+        <tr><td>“凭证无效”后原样重试</td><td>多余</td></tr>
+        <tr><td>结果说被截断，读下一页</td><td>需要（如果目标需要剩下部分）</td></tr>
+        <tr><td>重复一个已成功的写操作（发消息、建记录）</td><td>多余，且可能有害</td></tr>
+        <tr><td>打开之前结果里出现的链接或文件</td><td>看情况：目标还需要 → 需要；答案已知 → 多余</td></tr>
+        <tr><td>小目标做大范围搜索</td><td>多余</td></tr>
+        <tr><td>目标本身就是大范围（“所有”“全部用法”）</td><td>需要</td></tr>
+        <tr><td>目标完成后汇报/结束</td><td>需要</td></tr>
+      </tbody>
+    </table></div>
+    <h3>不要判断的</h3>
+    <ul>
+      <li>动作是否安全、是否被允许、会不会成功——只判断是否必要。</li>
+      <li>你自己更喜欢的计划——只要它是朝目标的合理一步，就不要因为你会先做别的而判多余。</li>
+      <li>成本大小——便宜的多余动作仍是多余，昂贵但必要的仍是需要。</li>
+    </ul>
+    <h3>独立性</h3>
+    <ul>
+      <li>独自完成；所有人交卷前不讨论用例。</li>
+      <li>不看仓库里已有的标注、评估器的输出或源码。</li>
+      <li>用例看起来有问题（矛盾、看不懂）时，标“不确定”并在备注里说明。</li>
+    </ul>
+    <p class="hint">完整英文版：<a href="https://github.com/Suffiss/action-necessity-model/blob/main/docs/labeling-guide.md" target="_blank" rel="noopener">docs/labeling-guide.md</a></p>
+    <div class="row"><button class="btn primary" type="button" data-close>知道了</button></div>
+  </div>
+</dialog>
+
+<dialog id="export" aria-labelledby="export-title">
+  <div class="dlg">
+    <h2 id="export-title">导出你的标注</h2>
+    <p id="export-intro" class="hint"></p>
+    <textarea class="csv" id="csv" readonly aria-label="CSV 内容"></textarea>
+    <div class="err" id="export-msg" role="status"></div>
+    <div class="row">
+      <button class="btn" type="button" id="copy-csv">复制</button>
+      <button class="btn" type="button" id="save-csv" hidden>下载文件</button>
+      <button class="btn primary" type="button" data-close>关闭</button>
+    </div>
+  </div>
+</dialog>
+
+<script id="data" type="application/json">__LABELER_DATA__</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const LABELS = [
+  { value: "necessary", zh: "需要", keys: ["n", "1"] },
+  { value: "unnecessary", zh: "多余", keys: ["u", "2"] },
+  { value: "uncertain", zh: "不确定", keys: ["?", "q", "3", "/"] },
+];
+const NAME_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
+const LOCAL_KEY = "suffiss-labeler-v1";
+const $ = (id) => document.getElementById(id);
+
+// ------------------------------------------------------------- state
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || null; } catch (e) { return null; }
+}
+function saveLocal() {
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch (e) { /* storage blocked: the server copy or the CSV export still holds the work */ }
+}
+let state = Object.assign({ annotator: "", set: "pilot", labels: {}, scenario: 0, updatedAt: null }, loadLocal() || {});
+let focusIdx = 0;
+
+function scenarios() {
+  return state.set === "pilot" ? DATA.scenarios.filter((s) => DATA.pilot.includes(s.context_id)) : DATA.scenarios;
+}
+function caseIds() { return scenarios().flatMap((s) => s.candidates.map((c) => c.id)); }
+function progress() {
+  const ids = caseIds();
+  return { done: ids.filter((id) => state.labels[id] && state.labels[id].label).length, total: ids.length };
+}
+function touch() {
+  state.updatedAt = new Date().toISOString();
+  saveLocal();
+  scheduleRemote();
+  renderMeter();
+}
+
+// ------------------------------------------------------------ remote
+// Each annotator writes only labels/<their id>; the access rules hide it from everyone but the owner.
+const remote = { db: null, uid: null, timer: null, saving: false, dirty: false };
+const STATUS = {
+  local: ["仅保存在本浏览器 · 完成后请导出 CSV", "warn"],
+  connecting: ["正在连接…", ""],
+  saving: ["保存中…", ""],
+  saved: ["已自动保存", "ok"],
+  error: ["保存失败 · 请导出 CSV 备份", "bad"],
+};
+function setStatus(key) {
+  const [text, tone] = STATUS[key];
+  $("status").textContent = text;
+  $("status").dataset.tone = tone;
+}
+async function connect() {
+  if (!window.claude || !window.claude.use) { setStatus("local"); return; }
+  setStatus("connecting");
+  const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  const uid = user ? await user.id() : null;
+  if (!db || !uid) { setStatus("local"); return; }
+  remote.db = db; remote.uid = uid;
+  try {
+    const snap = await db.doc("labels/" + uid).get();
+    if (snap.exists) adoptRemote(snap.data());
+    setStatus("saved");
+    if (state.annotator) scheduleRemote();
+  } catch (e) {
+    remote.db = null;
+    setStatus("local");
+  }
+}
+function adoptRemote(doc) {
+  if (!doc || !doc.labels) return;
+  const newer = !state.updatedAt || (doc.updatedAt && doc.updatedAt > state.updatedAt);
+  if (!newer) return;
+  state.annotator = doc.annotator || state.annotator;
+  state.set = doc.set || state.set;
+  state.labels = doc.labels;
+  state.updatedAt = doc.updatedAt;
+  saveLocal();
+  route();
+}
+function scheduleRemote() {
+  if (!remote.db || !state.annotator) return;
+  clearTimeout(remote.timer);
+  remote.timer = setTimeout(flushRemote, 900);
+}
+async function flushRemote() {
+  if (!remote.db) return;
+  if (remote.saving) { remote.dirty = true; return; }
+  remote.saving = true;
+  setStatus("saving");
+  const body = { annotator: state.annotator, set: state.set, labels: state.labels, updatedAt: state.updatedAt, benchmark: "v1" };
+  try {
+    await remote.db.doc("labels/" + remote.uid).set(body);
+    setStatus("saved");
+  } catch (e) {
+    // invalid_argument here means this viewer may not write: keep working locally.
+    if (e && e.code === "invalid_argument") { remote.db = null; setStatus("local"); }
+    else setStatus("error");
+  } finally {
+    remote.saving = false;
+    if (remote.dirty) { remote.dirty = false; flushRemote(); }
+  }
+}
+
+// ----------------------------------------------------------- helpers
+function el(tag, props, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === "class") node.className = v;
+    else if (k === "dataset") Object.assign(node.dataset, v);
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) node.setAttribute(k, v === true ? "" : v);
+  }
+  for (const child of children.flat()) if (child != null) node.append(child.nodeType ? child : String(child));
+  return node;
+}
+function argsText(args) {
+  const keys = Object.keys(args || {});
+  return keys.length ? JSON.stringify(args) : "";
+}
+function actionNode(action) {
+  const args = argsText(action.arguments);
+  return el("div", {}, el("span", { class: "tool" }, action.tool || action.type), el("span", { class: "cand-desc" }, action.description || ""), args ? el("code", { class: "args" }, args) : null);
+}
+
+// ------------------------------------------------------------ render
+function renderMeter() {
+  const { done, total } = progress();
+  $("meter").hidden = !state.annotator;
+  $("meter-fill").style.width = total ? (100 * done / total) + "%" : "0";
+  $("meter-text").textContent = done + " / " + total;
+  $("who").textContent = state.annotator ? "· " + state.annotator : "";
+  $("open-export").hidden = !state.annotator;
+  const complete = state.annotator && done === total;
+  $("done-banner").hidden = !complete;
+  if (complete) $("done-text").textContent = remote.db ? " 答案已自动保存，也可以导出备份。" : " 请导出 CSV 并发给协调人。";
+  renderNav();
+}
+function renderNav() {
+  const nav = $("scen-nav");
+  nav.replaceChildren(...scenarios().map((s, i) => {
+    const n = s.candidates.filter((c) => state.labels[c.id] && state.labels[c.id].label).length;
+    return el("button", {
+      class: "chip", type: "button", title: s.category,
+      dataset: { done: n === s.candidates.length ? "all" : n ? "some" : "none" },
+      "aria-current": i === state.scenario ? "true" : "false",
+      onclick: () => go(i),
+    }, String(i + 1).padStart(2, "0"));
+  }));
+}
+function renderContext(s) {
+  const history = s.history.length
+    ? el("ol", { class: "timeline" }, s.history.map((h, i) =>
+        el("li", { class: "step" }, el("span", { class: "step-n" }, i + 1), el("div", {}, actionNode(h.action), el("pre", { class: "result" }, "→ " + (h.result || "(无输出)"))))))
+    : el("p", { class: "empty-hist" }, "还没有执行过任何动作。");
+  $("context").replaceChildren(
+    el("div", { class: "eyebrow" }, "场景 " + (state.scenario + 1) + " / " + scenarios().length + " · " + s.category),
+    el("h2", { class: "goal" }, s.goal),
+    s.state ? el("div", { class: "state" }, el("span", { class: "eyebrow" }, "当前状态 "), s.state) : null,
+    el("div", { class: "eyebrow" }, "已执行的动作和结果"),
+    history,
+  );
+}
+function candidateCard(c, idx) {
+  const current = state.labels[c.id] || {};
+  const card = el("div", { class: "cand", tabindex: "0", dataset: { focus: String(idx === focusIdx), id: c.id }, onfocus: () => setFocus(idx, false) },
+    el("div", { class: "cand-head" }, el("span", { class: "letter" }, "ABCDE"[idx]), actionNode(c.action)),
+    el("div", { class: "seg", role: "group", "aria-label": "判断" }, LABELS.map((l) =>
+      el("button", { type: "button", dataset: { label: l.value }, "aria-pressed": String(current.label === l.value), onclick: () => setLabel(idx, l.value) }, l.zh, el("small", {}, l.keys[0].toUpperCase())))),
+    el("input", { class: "note", id: "note-" + c.id, placeholder: "备注（可选，难判断时写一句理由）", value: current.note || "", maxlength: "300", oninput: (e) => setNote(c.id, e.target.value) }),
+  );
+  return card;
+}
+function renderCandidates(s) {
+  $("cands").replaceChildren(...s.candidates.map(candidateCard));
+  $("prev").disabled = state.scenario === 0;
+  $("next").textContent = state.scenario === scenarios().length - 1 ? "回到第一个场景" : "下一个场景 →";
+}
+function renderWork() {
+  const list = scenarios();
+  state.scenario = Math.min(Math.max(0, state.scenario), list.length - 1);
+  const s = list[state.scenario];
+  renderContext(s);
+  renderCandidates(s);
+  renderMeter();
+}
+function route() {
+  const started = Boolean(state.annotator);
+  $("start").hidden = started;
+  $("work").hidden = !started;
+  if (started) renderWork(); else renderMeter();
+}
+
+// ----------------------------------------------------------- actions
+function go(i) {
+  state.scenario = (i + scenarios().length) % scenarios().length;
+  focusIdx = 0;
+  saveLocal();
+  renderWork();
+  window.scrollTo({ top: 0 });
+}
+function setFocus(idx, move) {
+  focusIdx = idx;
+  document.querySelectorAll(".cand").forEach((card, i) => { card.dataset.focus = String(i === idx); });
+  if (move) { const card = document.querySelectorAll(".cand")[idx]; if (card) card.focus({ preventScroll: false }); }
+}
+function setLabel(idx, label) {
+  const c = scenarios()[state.scenario].candidates[idx];
+  const prev = state.labels[c.id] || {};
+  state.labels[c.id] = { label, note: prev.note || "" };
+  touch();
+  const card = document.querySelectorAll(".cand")[idx];
+  card.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.label === label)));
+  if (idx < 4) setFocus(idx + 1, true);
+}
+let noteTimer = null;
+function setNote(id, text) {
+  const prev = state.labels[id] || { label: "" };
+  state.labels[id] = { label: prev.label || "", note: text.trim() };
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(touch, 400);
+}
+
+// ------------------------------------------------------------ export
+function csvCell(value) {
+  const text = String(value == null ? "" : value);
+  return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+}
+function buildCsv() {
+  const rows = [["id", "category", "label", "note"]];
+  for (const s of scenarios()) for (const c of s.candidates) {
+    const l = state.labels[c.id] || {};
+    rows.push([c.id, s.category, l.label || "", l.note || ""]);
+  }
+  return "﻿" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
+let downloads = null;
+async function openExport() {
+  const { done, total } = progress();
+  $("export-intro").textContent = "已标 " + done + " / " + total + " 条。把下面的内容保存为 .csv 文件（或复制后粘贴发给协调人）。文件名建议：" + fileName();
+  $("csv").value = buildCsv();
+  $("export-msg").textContent = "";
+  $("save-csv").hidden = !(downloads || !window.claude);
+  $("export").showModal();
+}
+function fileName() { return "labels-" + (state.annotator || "anon") + "-" + state.set + ".csv"; }
+async function copyCsv() {
+  const text = $("csv").value;
+  try { await navigator.clipboard.writeText(text); $("export-msg").textContent = "已复制。"; }
+  catch (e) { $("csv").select(); $("export-msg").textContent = "无法自动复制，已选中全部内容，请按 Ctrl+C / ⌘C。"; }
+}
+async function saveCsv() {
+  const data = $("csv").value;
+  if (downloads) {
+    try { await downloads.save({ filename: fileName(), data }); $("export-msg").textContent = "已保存。"; }
+    catch (e) { $("export-msg").textContent = e && e.code === "declined" ? "已取消。" : "无法下载，请使用“复制”。"; }
+    return;
+  }
+  // Outside the Claude viewer (e.g. a static host) a normal download link works.
+  const url = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
+  el("a", { href: url, download: fileName() }).click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// -------------------------------------------------------------- start
+function startSubmit(event) {
+  event.preventDefault();
+  const name = $("annotator").value.trim().toLowerCase();
+  const err = (msg) => { $("start-err").textContent = msg; };
+  if (!NAME_RE.test(name) || name === "author") return err("代号只能用小写字母、数字、- 或 _，且不能是 author。");
+  if (!$("ack-guide").checked) return err("请先阅读标注规则并勾选。");
+  if (!$("ack-indep").checked) return err("请确认会独立完成。");
+  err("");
+  state.annotator = name;
+  state.set = $("set-full").checked ? "full" : "pilot";
+  state.scenario = 0;
+  touch();
+  route();
+}
+
+// ----------------------------------------------------------- keyboard
+function onKey(event) {
+  if ($("work").hidden || document.querySelector("dialog[open]")) return;
+  if (event.target.closest("input, textarea") || event.metaKey || event.ctrlKey || event.altKey) return;
+  const key = event.key.toLowerCase();
+  const label = LABELS.find((l) => l.keys.includes(key));
+  if (label) { event.preventDefault(); setLabel(focusIdx, label.value); return; }
+  const moves = { arrowdown: () => setFocus(Math.min(4, focusIdx + 1), true), j: () => setFocus(Math.min(4, focusIdx + 1), true),
+    arrowup: () => setFocus(Math.max(0, focusIdx - 1), true), k: () => setFocus(Math.max(0, focusIdx - 1), true),
+    arrowright: () => go(state.scenario + 1), arrowleft: () => go(state.scenario - 1) };
+  if (moves[key]) { event.preventDefault(); moves[key](); }
+}
+
+// --------------------------------------------------------------- boot
+document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+$("open-guide").addEventListener("click", () => $("guide").showModal());
+$("guide-link").addEventListener("click", (e) => { e.preventDefault(); $("guide").showModal(); });
+$("open-export").addEventListener("click", openExport);
+$("done-export").addEventListener("click", openExport);
+$("copy-csv").addEventListener("click", copyCsv);
+$("save-csv").addEventListener("click", saveCsv);
+$("prev").addEventListener("click", () => go(state.scenario - 1));
+$("next").addEventListener("click", () => go(state.scenario + 1));
+$("start-form").addEventListener("submit", startSubmit);
+document.addEventListener("keydown", onKey);
+route();
+setStatus("local");
+connect();
+if (window.claude && window.claude.use) window.claude.use("downloads").then((d) => { downloads = d; });
+</script>

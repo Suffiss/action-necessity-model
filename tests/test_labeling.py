@@ -131,6 +131,43 @@ def test_unknown_pilot_context_is_rejected(workspace: Path) -> None:
         labeling.select_contexts(load_cases(), ["nope"])
 
 
+def _web_doc(**overrides: object) -> dict:
+    body = {"annotator": "lin", "set": "pilot", "labels": {"c1-a": {"label": "necessary", "note": " ok "},
+            "c1-b": {"label": "", "note": ""}}, "benchmark": "v1"}  # fmt: skip
+    body.update(overrides)
+    return body
+
+
+def test_import_web_document_accepts_page_body_and_db_record() -> None:
+    for document in (_web_doc(), {"id": "u_x", "data": _web_doc(), "version": 3}):
+        annotator, task_set, rows = labeling.import_web_document(document, ["c1-a", "c1-b"])
+        assert (annotator, task_set) == ("lin", "pilot")
+        assert rows == [{"id": "c1-a", "label": "necessary", "note": "ok"}]
+
+
+@pytest.mark.parametrize(
+    "document",
+    [
+        _web_doc(annotator="../x"),
+        _web_doc(annotator="author"),
+        _web_doc(labels={"zzz": {"label": "necessary"}}),
+        _web_doc(labels={"c1-a": {"label": "maybe"}}),
+        _web_doc(labels={"c1-a": "necessary"}),
+        {"unrelated": True},
+    ],
+)
+def test_import_web_document_rejects_untrusted_input(document: dict) -> None:
+    with pytest.raises(ValueError):
+        labeling.import_web_document(document, ["c1-a", "c1-b"])
+
+
+def test_import_web_command_writes_annotator_labels(workspace: Path) -> None:
+    source = workspace / "lin.json"
+    source.write_text(json.dumps({"data": _web_doc(labels={"c2-a": {"label": "uncertain", "note": ""}})}), encoding="utf-8")
+    assert labeling.main(["import-web", str(source)]) == 0
+    assert labeling.load_annotations() == {"lin": {"c2-a": "uncertain"}}
+
+
 def test_author_labels_are_excluded_from_gold(workspace: Path) -> None:
     labels_dir = labeling.LABELS_DIR
     labels_dir.mkdir()

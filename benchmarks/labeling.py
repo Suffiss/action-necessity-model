@@ -127,6 +127,29 @@ def import_sheet(path: Path, known_ids: Iterable[str], allow_partial: bool = Fal
     return rows
 
 
+def import_web_document(document: Mapping[str, Any], known_ids: Iterable[str]) -> tuple[str, str, list[dict[str, str]]]:
+    """Validate one annotator's document saved by the web labeling page.
+
+    Accepts the page's body or a database record wrapping it in ``data``.
+    Returns (annotator, task set, label rows); the page's content is untrusted input.
+    """
+    body = document.get("data", document)
+    if not isinstance(body, Mapping) or not isinstance(body.get("labels"), Mapping):
+        raise ValueError("not a labeling-page document (missing 'labels')")
+    annotator = validate_annotator(str(body.get("annotator", "")))
+    known = set(known_ids)
+    rows = []
+    for case_id, entry in body["labels"].items():
+        if case_id not in known:
+            raise ValueError(f"{annotator}: unknown case id {case_id!r}")
+        if not isinstance(entry, Mapping):
+            raise ValueError(f"{annotator}: malformed entry for {case_id}")
+        label = parse_label(str(entry.get("label") or ""))
+        if label is not None:
+            rows.append({"id": case_id, "label": label, "note": str(entry.get("note") or "").strip()[:300]})
+    return annotator, str(body.get("set", "")), sorted(rows, key=lambda row: row["id"])
+
+
 # -------------------------------------------------------------- annotations
 
 def load_annotations(labels_dir: Path | None = None, include_author: bool = False) -> dict[str, dict[str, str]]:
@@ -177,6 +200,15 @@ def _cmd_import(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_import_web(args: argparse.Namespace) -> int:
+    known = [c["id"] for c in load_cases()]
+    for source in args.documents:
+        annotator, task_set, rows = import_web_document(json.loads(Path(source).read_text(encoding="utf-8")), known)
+        _write_jsonl(LABELS_DIR / f"{annotator}.jsonl", rows)
+        print(f"imported {len(rows)} labels for {annotator} (task set: {task_set or 'unknown'})")
+    return 0
+
+
 def _cmd_agree(args: argparse.Namespace) -> int:
     annotations = load_annotations(include_author=True)
     if len(annotations) < 2:
@@ -216,6 +248,9 @@ def build_parser() -> argparse.ArgumentParser:
     imp.add_argument("--annotator", required=True)
     imp.add_argument("--allow-partial", action="store_true")
     imp.set_defaults(handler=_cmd_import)
+    web = sub.add_parser("import-web", help="import documents saved by the web labeling page (JSON files)")
+    web.add_argument("documents", nargs="+")
+    web.set_defaults(handler=_cmd_import_web)
     agree = sub.add_parser("agree", help="pairwise agreement between all annotators (including author)")
     agree.add_argument("--show-disagreements", action="store_true")
     agree.set_defaults(handler=_cmd_agree)
