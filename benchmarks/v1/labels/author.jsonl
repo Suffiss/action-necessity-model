@@ -198,3 +198,53 @@
 {"id": "v1-database-10-c", "label": "unnecessary", "note": "Broader than needed."}
 {"id": "v1-database-10-d", "label": "uncertain", "note": "Avoids a write error, but is often unnecessary."}
 {"id": "v1-database-10-e", "label": "uncertain", "note": "Negative stock may or may not count as 'zero stock'."}
+{"id": "v1-filesystem-01-a", "label": "necessary", "note": "Remaining rename."}
+{"id": "v1-filesystem-01-b", "label": "necessary", "note": "Remaining rename."}
+{"id": "v1-filesystem-01-c", "label": "unnecessary", "note": "Already renamed."}
+{"id": "v1-filesystem-01-d", "label": "unnecessary", "note": "A mid-way listing adds nothing; a check belongs after the last rename."}
+{"id": "v1-filesystem-01-e", "label": "unnecessary", "note": "Far outside the task."}
+{"id": "v1-filesystem-02-a", "label": "necessary", "note": "The task itself."}
+{"id": "v1-filesystem-02-b", "label": "unnecessary", "note": "Same listing."}
+{"id": "v1-filesystem-02-c", "label": "uncertain", "note": "A before figure helps report space freed, but is optional."}
+{"id": "v1-filesystem-02-d", "label": "unnecessary", "note": "Far beyond the old .tmp files."}
+{"id": "v1-filesystem-02-e", "label": "uncertain", "note": "Context for the result, not required."}
+{"id": "v1-filesystem-03-a", "label": "uncertain", "note": "Precedence matters only if 'which one wins' is part of the question."}
+{"id": "v1-filesystem-03-b", "label": "necessary", "note": "Both files are identified."}
+{"id": "v1-filesystem-03-c", "label": "unnecessary", "note": "Same search."}
+{"id": "v1-filesystem-03-d", "label": "unnecessary", "note": "Far broader than needed."}
+{"id": "v1-filesystem-03-e", "label": "unnecessary", "note": "The relevant line is already known."}
+{"id": "v1-filesystem-04-a", "label": "necessary", "note": "The verification the goal asks for."}
+{"id": "v1-filesystem-04-b", "label": "unnecessary", "note": "Already created."}
+{"id": "v1-filesystem-04-c", "label": "uncertain", "note": "A weaker check than listing the contents."}
+{"id": "v1-filesystem-04-d", "label": "uncertain", "note": "Useful for later comparison, not verification by itself."}
+{"id": "v1-filesystem-04-e", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-filesystem-05-a", "label": "uncertain", "note": "The goal says the headers match; checking is optional."}
+{"id": "v1-filesystem-05-b", "label": "necessary", "note": "The task itself."}
+{"id": "v1-filesystem-05-c", "label": "unnecessary", "note": "Already listed."}
+{"id": "v1-filesystem-05-d", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-filesystem-05-e", "label": "unnecessary", "note": "The file does not exist yet."}
+{"id": "v1-filesystem-06-a", "label": "necessary", "note": "The first half of the goal."}
+{"id": "v1-filesystem-06-b", "label": "unnecessary", "note": "It is not executable yet; this would fail."}
+{"id": "v1-filesystem-06-c", "label": "uncertain", "note": "Reviewing a script before running it is prudent, not required."}
+{"id": "v1-filesystem-06-d", "label": "unnecessary", "note": "Nothing changed."}
+{"id": "v1-filesystem-06-e", "label": "uncertain", "note": "Runs it, but skips making it executable."}
+{"id": "v1-filesystem-07-a", "label": "necessary", "note": "One of the two duplicates."}
+{"id": "v1-filesystem-07-b", "label": "necessary", "note": "The other duplicate."}
+{"id": "v1-filesystem-07-c", "label": "unnecessary", "note": "Same scan."}
+{"id": "v1-filesystem-07-d", "label": "uncertain", "note": "fdupes already compared content byte by byte."}
+{"id": "v1-filesystem-07-e", "label": "unnecessary", "note": "Outside the task."}
+{"id": "v1-filesystem-08-a", "label": "necessary", "note": "Required file."}
+{"id": "v1-filesystem-08-b", "label": "necessary", "note": "Required file."}
+{"id": "v1-filesystem-08-c", "label": "necessary", "note": "Required file."}
+{"id": "v1-filesystem-08-d", "label": "unnecessary", "note": "Directories already exist."}
+{"id": "v1-filesystem-08-e", "label": "uncertain", "note": "A final check, though the commands report success."}
+{"id": "v1-filesystem-09-a", "label": "necessary", "note": "The rotation config is the first suspect."}
+{"id": "v1-filesystem-09-b", "label": "unnecessary", "note": "Same listing."}
+{"id": "v1-filesystem-09-c", "label": "necessary", "note": "Shows what rotation would do and why."}
+{"id": "v1-filesystem-09-d", "label": "unnecessary", "note": "The goal is to diagnose, not to clean up."}
+{"id": "v1-filesystem-09-e", "label": "unnecessary", "note": "Log content says nothing about rotation."}
+{"id": "v1-filesystem-10-a", "label": "necessary", "note": "Confirms the files arrived."}
+{"id": "v1-filesystem-10-b", "label": "uncertain", "note": "Confirms they left; overlaps with checking the target."}
+{"id": "v1-filesystem-10-c", "label": "unnecessary", "note": "Already moved; there is nothing left to match."}
+{"id": "v1-filesystem-10-d", "label": "unnecessary", "note": "Not a PDF."}
+{"id": "v1-filesystem-10-e", "label": "uncertain", "note": "Exit code 0 may be enough confirmation."}
