@@ -6,8 +6,9 @@ Writes two files:
   labeler.html  page body for publishing as a claude.ai artifact (the host adds the document skeleton)
   index.html    complete standalone page for any static host (GitHub Pages) or opening locally
 
-The page embeds the cases grouped by scenario and the pilot list. It never
-reads labels/ : annotators must not be able to see anyone's answers.
+The page embeds the cases grouped by scenario, their plain-Chinese
+descriptions and the pilot list. It never reads labels/ : annotators must
+not be able to see anyone's answers.
 """
 
 from __future__ import annotations
@@ -17,10 +18,11 @@ import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from benchmarks.labeling import V1_DIR, load_cases
+from benchmarks.labeling import V1_DIR, load_cases, read_pilot
 
 TEMPLATE = Path(__file__).with_name("template.html")
 DIST = Path(__file__).with_name("dist")
+PLAIN_ZH = V1_DIR / "plain_zh.jsonl"
 PLACEHOLDER = "__LABELER_DATA__"
 STANDALONE_HEAD = (
     '<!doctype html><html lang="zh"><head><meta charset="utf-8">'
@@ -42,14 +44,25 @@ def group_scenarios(cases: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     return list(scenarios.values())
 
 
-def read_pilot(path: Path) -> list[str]:
-    lines = (line.strip() for line in path.read_text(encoding="utf-8").splitlines())
-    return [line for line in lines if line and not line.startswith("#")]
+def load_plain_zh(path: Path = PLAIN_ZH) -> dict[str, dict[str, Any]]:
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return {row["context_id"]: {k: v for k, v in row.items() if k != "context_id"} for row in rows}
 
 
-def page_data(cases: Sequence[Mapping[str, Any]], pilot: Sequence[str]) -> str:
-    payload = {"scenarios": group_scenarios(cases), "pilot": list(pilot)}
-    text = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+def attach_plain_text(scenarios: list[dict[str, Any]], plain: Mapping[str, Mapping[str, Any]]) -> None:
+    """Give every scenario its plain-language description; the page shows it first."""
+    for scenario in scenarios:
+        zh = plain.get(scenario["context_id"])
+        if zh is None or set(zh["candidates"]) != {c["id"] for c in scenario["candidates"]}:
+            raise ValueError(f"{scenario['context_id']}: plain-language text missing or misaligned")
+        scenario["zh"] = dict(zh)
+
+
+def page_data(cases: Sequence[Mapping[str, Any]], pilot: Sequence[str], plain: Mapping[str, Any] | None = None) -> str:
+    scenarios = group_scenarios(cases)
+    if plain is not None:
+        attach_plain_text(scenarios, plain)
+    text = json.dumps({"scenarios": scenarios, "pilot": list(pilot)}, ensure_ascii=False, separators=(",", ":"))
     # Keep case text from closing the surrounding <script> element.
     return text.replace("</", "<\\/")
 
@@ -58,7 +71,7 @@ def render() -> str:
     template = TEMPLATE.read_text(encoding="utf-8")
     if template.count(PLACEHOLDER) != 1:
         raise ValueError("template must contain the data placeholder exactly once")
-    return template.replace(PLACEHOLDER, page_data(load_cases(), read_pilot(V1_DIR / "pilot.txt")))
+    return template.replace(PLACEHOLDER, page_data(load_cases(), read_pilot(), load_plain_zh()))
 
 
 def build(dist: Path = DIST) -> list[Path]:

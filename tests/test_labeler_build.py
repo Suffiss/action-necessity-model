@@ -66,6 +66,29 @@ def test_both_variants_embed_all_cases(pages: dict[str, str]) -> None:
         assert len(data["pilot"]) == 6
 
 
+def test_every_scenario_carries_its_plain_chinese_text(pages: dict[str, str]) -> None:
+    for scenario in _embedded(pages["index.html"])["scenarios"]:
+        zh = scenario["zh"]
+        assert zh["goal"] and len(zh["history"]) == len(scenario["history"])
+        assert set(zh["candidates"]) == {c["id"] for c in scenario["candidates"]}
+
+
+def test_misaligned_plain_text_is_rejected() -> None:
+    from benchmarks.labeler.build import attach_plain_text
+
+    scenarios = group_scenarios(load_cases())[:1]
+    with pytest.raises(ValueError):
+        attach_plain_text(scenarios, {scenarios[0]["context_id"]: {"goal": "x", "state": "", "history": [], "candidates": {}}})
+
+
+def test_page_answer_code_logic_mirrors_python_encoder() -> None:
+    # Guards the JS port: same digit map, checksum weighting, grouping and header.
+    js = TEMPLATE.read_text(encoding="utf-8")
+    assert 'CODE_DIGIT = { necessary: "1", unnecessary: "2", uncertain: "3", skip: "0" }' in js
+    assert '(k + 1) * (digits[k] === "-" ? 4 : Number(digits[k]))' in js
+    assert "sum % 97" in js and "k += 5" in js and '"V1-"' in js
+
+
 def test_standalone_variant_is_a_full_document(pages: dict[str, str]) -> None:
     assert pages["index.html"].startswith("<!doctype html>")
     assert 'name="viewport"' in pages["index.html"]

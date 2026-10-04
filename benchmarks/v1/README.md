@@ -28,7 +28,13 @@ are worth doing?
 There are two ways to label, and both produce the same `labels/<annotator>.jsonl`.
 
 **1. Web page (recommended).** Build it with `python -m benchmarks.labeler.build`.
-- **What annotators see:** one scenario at a time with its five candidates, keyboard labeling (`N` / `U` / `?`), and a progress bar. The page never contains anyone's labels.
+- **What annotators see:** one question per screen, designed so that people with no technical background (including older readers) can take part.
+  - Each scenario and candidate is shown in plain Chinese (`plain_zh.jsonl`), and the technical original is one tap away.
+  - The text describes what an action does and never hints at the answer; tests guard this.
+  - Three large answers (有必要 / 没必要 / 说不准), plus "看不懂" (*don't understand*). "看不懂" is stored as `skip`: it counts as answered but never as a vote.
+  - Annotators are asked whether they write code (recorded in `labels/annotators.json`), so expert and lay labels can be analysed separately.
+  - The page never contains anyone's labels.
+- **Answer code:** at the end the page shows a short code with a checksum. The annotator photographs or screenshots it, and the coordinator runs `python -m benchmarks.labeling import-code "<code>" --annotator NAME`.
 - **As a claude.ai artifact** (`dist/labeler.html`):
   - Each annotator's answers save automatically to a private database document that only the owner can read. Annotators must be invited by email with edit access.
   - The coordinator exports those documents to JSON and runs `python -m benchmarks.labeling import-web <files>`.
