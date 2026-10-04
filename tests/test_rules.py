@@ -11,6 +11,7 @@ from suffiss.necessity.rules import (
     is_mutating,
     is_truncated,
     mentions_target,
+    returns_file_content,
 )
 
 
@@ -105,3 +106,30 @@ def test_mentions_target(result: str, target: str, expected: bool) -> None:
 )
 def test_has_visible_payload(arguments: dict, expected: bool) -> None:
     assert has_visible_payload(Action("write", "tool", arguments=arguments)) is expected
+
+
+@pytest.mark.parametrize(
+    ("result", "expected"),
+    [
+        ("Traceback (most recent call last):\nKeyError: 'id'", ResultStatus.SUCCESS),
+        ("2026-10-01 ERROR worker timed out", ResultStatus.SUCCESS),
+        ("cat: notes.txt: No such file or directory", ResultStatus.FAILURE),
+        ("", ResultStatus.UNKNOWN),
+    ],
+)
+def test_file_content_results_only_fail_on_access_errors(result: str, expected: ResultStatus) -> None:
+    assert classify_result(result, content=True) is expected
+
+
+@pytest.mark.parametrize(
+    ("action", "expected"),
+    [
+        (Action("file_read", "read_file", arguments={"path": "logs/app.log"}), True),
+        (Action("search", "grep", arguments={"query": "TODO"}), True),
+        (Action("browse", "fetch_url", arguments={"url": "https://example.com"}), False),
+        (Action("db_query", "sql", arguments={"query": "SELECT 1"}), False),
+        (Action("db_query", "describe_table", arguments={"table": "users"}), False),
+    ],
+)
+def test_returns_file_content(action: Action, expected: bool) -> None:
+    assert returns_file_content(action) is expected

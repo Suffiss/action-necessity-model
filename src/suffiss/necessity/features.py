@@ -24,6 +24,7 @@ from suffiss.necessity.rules import (
     is_broad_action,
     is_doc_path,
     is_mutating,
+    returns_file_content,
     is_test_run,
     is_truncated,
     knowledge_gaps,
@@ -92,18 +93,21 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
     prep = _prepare(context)
     proposed = context.proposed_action
     match = _find_match(prep, similarity, duplicate_threshold)
+    mutating = is_mutating(proposed, prep.kind)
+    # Paging through truncated output is information gathering, never a write.
+    gathers = match is None and not mutating
     verify_from = _last_mutation(prep, strict=True)
     relevance, disjoint = _relevance(context.goal, prep.goal_stems, prep.action_stems)
     return Features(
         kind=prep.kind,
-        mutating=is_mutating(proposed, prep.kind),
+        mutating=mutating,
         payload_visible=has_visible_payload(proposed),
         context_sufficient=bool(prep.goal_stems) and bool(prep.action_stems),
         relevance=relevance,
         concepts_disjoint=disjoint,
         match=match,
         post_change_observation=verify_from is not None and prep.kind is not ActionKind.EXECUTE,
-        continuation=match is None and _continues_truncated_result(prep),
+        continuation=gathers and _continues_truncated_result(prep),
         follow_up=match is None and _follows_lead(prep),
         verification_candidate=verify_from is not None and (match is None or match.index < verify_from),
         prerequisite=_is_prerequisite(prep, match, verify_from),
@@ -115,7 +119,9 @@ def extract_features(context: ActionContext, similarity: SimilarityProvider, dup
 
 
 def _prepare(context: ActionContext) -> _Prepared:
-    statuses = tuple(classify_result(record.result) for record in context.history)
+    statuses = tuple(
+        classify_result(record.result, content=returns_file_content(record.action)) for record in context.history
+    )
     mutations = tuple(
         i
         for i, (record, status) in enumerate(zip(context.history, statuses))
@@ -216,6 +222,7 @@ def _is_prerequisite(prep: _Prepared, match: HistoryMatch | None, verify_from: i
     return (
         wants_change
         and prep.kind is ActionKind.READ
+        and not is_mutating(prep.context.proposed_action, prep.kind)
         and match is None
         and verify_from is None
         and _related(prep.goal_stems, prep.action_stems)

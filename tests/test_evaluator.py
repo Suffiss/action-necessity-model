@@ -166,3 +166,33 @@ def test_rereading_a_lead_already_followed_is_still_duplicate() -> None:
         ],
     )
     assert decision.decision is Decision.UNNECESSARY
+
+
+def test_rereading_a_log_full_of_errors_is_a_duplicate_not_a_retry() -> None:
+    log = "2026-10-01 ERROR db pool exhausted\nTraceback (most recent call last): ..."
+    decision = judge(
+        "Find why the worker keeps restarting",
+        read("logs/worker.log"),
+        history=[rec(read("logs/worker.log"), log)],
+    )
+    assert decision.decision is Decision.UNNECESSARY
+    assert decision.reason_code is ReasonCode.DUPLICATE_ACTION
+
+
+def test_a_write_is_never_labelled_a_prerequisite_read() -> None:
+    decision = judge(
+        "Remove inactive sessions from the sessions table",
+        act("db_query", "sql", "Delete inactive sessions", query="DELETE FROM sessions WHERE active = false"),
+        history=[rec(act("db_query", "sql", "Count inactive", query="SELECT COUNT(*) FROM sessions WHERE active = false"), "count: 9")],
+    )
+    assert decision.reason_code is not ReasonCode.PREREQUISITE_ACTION
+
+
+def test_editing_a_file_surfaced_by_search_acts_on_the_lead() -> None:
+    decision = judge(
+        "Find why the nightly sync crashed and fix it",
+        act("file_edit", "edit_file", "Skip rows without an id", path="workers/sync.py", old="row['id']", new="row.get('id')"),
+        history=[rec(act("search", "grep", "Search for KeyError", query="KeyError"), "workers/sync.py:12: KeyError: 'id'")],
+    )
+    assert decision.decision is Decision.NECESSARY
+    assert decision.reason_code is ReasonCode.DIRECT_GOAL_DEPENDENCY
