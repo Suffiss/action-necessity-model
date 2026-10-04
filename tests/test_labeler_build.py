@@ -24,6 +24,21 @@ def test_template_has_exactly_one_placeholder() -> None:
     assert TEMPLATE.read_text(encoding="utf-8").count(PLACEHOLDER) == 1
 
 
+def _guide_items(language: str) -> dict[str, int]:
+    template = TEMPLATE.read_text(encoding="utf-8")
+    body = template.split(f'class="guide-body" data-lang="{language}"', 1)[1].split('class="guide-body"', 1)[0]
+    counts = {}
+    for part in re.finditer(r'data-part="(\w+)">(.*?)</(?:ol|ul|tbody)>', body, re.S):
+        counts[part.group(1)] = len(re.findall(r"<(?:li|tr)>", part.group(2)))
+    return counts
+
+
+def test_guide_translations_stay_in_sync() -> None:
+    chinese, english = _guide_items("zh"), _guide_items("en")
+    assert chinese == english
+    assert chinese == {"steps": 5, "patterns": 14, "ignore": 3, "independence": 3}
+
+
 def test_scenarios_group_five_candidates_each() -> None:
     scenarios = group_scenarios(load_cases())
     assert len(scenarios) == 60
