@@ -1,0 +1,50 @@
+{"id": "v1-coding-01-a", "label": "necessary", "note": "This is the fix the evidence points to."}
+{"id": "v1-coding-01-b", "label": "unnecessary", "note": "Same file, unchanged since it was read."}
+{"id": "v1-coding-01-c", "label": "unnecessary", "note": "Deterministic failure, nothing changed."}
+{"id": "v1-coding-01-d", "label": "uncertain", "note": "Assertion already visible; reading the test may still clarify intent."}
+{"id": "v1-coding-01-e", "label": "unnecessary", "note": "A baseline of unrelated tests is not needed for this fix."}
+{"id": "v1-coding-02-a", "label": "necessary", "note": "Confirms the edit compiles."}
+{"id": "v1-coding-02-b", "label": "necessary", "note": "First check of the edited file."}
+{"id": "v1-coding-02-c", "label": "unnecessary", "note": "Identical edit already applied."}
+{"id": "v1-coding-02-d", "label": "unnecessary", "note": "Repository-wide search adds nothing for a one-file change."}
+{"id": "v1-coding-02-e", "label": "uncertain", "note": "Documenting the flag is plausible but not asked for."}
+{"id": "v1-coding-03-a", "label": "necessary", "note": "The error points at this file and line."}
+{"id": "v1-coding-03-b", "label": "unnecessary", "note": "Same deterministic compile error, nothing changed."}
+{"id": "v1-coding-03-c", "label": "unnecessary", "note": "A type error is not a missing-dependency problem."}
+{"id": "v1-coding-03-d", "label": "uncertain", "note": "Compiler settings rarely matter for TS2322, but could."}
+{"id": "v1-coding-03-e", "label": "unnecessary", "note": "The message is self-explanatory."}
+{"id": "v1-coding-04-a", "label": "unnecessary", "note": "A metadata bump does not affect behaviour."}
+{"id": "v1-coding-04-b", "label": "necessary", "note": "Goal done and verified."}
+{"id": "v1-coding-04-c", "label": "unnecessary", "note": "Already verified after the edit."}
+{"id": "v1-coding-04-d", "label": "uncertain", "note": "Other files may duplicate the version, but the goal names only pyproject.toml."}
+{"id": "v1-coding-04-e", "label": "unnecessary", "note": "Committing was not requested."}
+{"id": "v1-coding-05-a", "label": "necessary", "note": "A known remaining occurrence."}
+{"id": "v1-coding-05-b", "label": "unnecessary", "note": "Remaining occurrences are already known; a final check belongs after all edits."}
+{"id": "v1-coding-05-c", "label": "uncertain", "note": "Verifying a one-line rename is optional."}
+{"id": "v1-coding-05-d", "label": "necessary", "note": "A known remaining occurrence."}
+{"id": "v1-coding-05-e", "label": "unnecessary", "note": "Tests will fail until the remaining references are renamed."}
+{"id": "v1-coding-06-a", "label": "necessary", "note": "The log points at the database being down."}
+{"id": "v1-coding-06-b", "label": "unnecessary", "note": "Nothing changed."}
+{"id": "v1-coding-06-c", "label": "uncertain", "note": "The handler is probably fine, but its error handling may matter."}
+{"id": "v1-coding-06-d", "label": "unnecessary", "note": "Already read; no new events expected."}
+{"id": "v1-coding-06-e", "label": "unnecessary", "note": "The cause is already clear from the log."}
+{"id": "v1-coding-07-a", "label": "necessary", "note": "The remaining reported error."}
+{"id": "v1-coding-07-b", "label": "unnecessary", "note": "The only remaining error is already known."}
+{"id": "v1-coding-07-c", "label": "uncertain", "note": "An alternative route to the same fix."}
+{"id": "v1-coding-07-d", "label": "necessary", "note": "Needed to edit line 10 correctly."}
+{"id": "v1-coding-07-e", "label": "unnecessary", "note": "The goal is lint, not tests."}
+{"id": "v1-coding-08-a", "label": "uncertain", "note": "Useful for naming conventions, not essential."}
+{"id": "v1-coding-08-b", "label": "necessary", "note": "This is the deliverable."}
+{"id": "v1-coding-08-c", "label": "unnecessary", "note": "Already read; unchanged."}
+{"id": "v1-coding-08-d", "label": "unnecessary", "note": "The test file does not exist yet."}
+{"id": "v1-coding-08-e", "label": "unnecessary", "note": "Basic pytest knowledge is assumed."}
+{"id": "v1-coding-09-a", "label": "necessary", "note": "The upgrade itself."}
+{"id": "v1-coding-09-b", "label": "unnecessary", "note": "Version already known."}
+{"id": "v1-coding-09-c", "label": "unnecessary", "note": "Would install the old version."}
+{"id": "v1-coding-09-d", "label": "uncertain", "note": "Checking for breaking changes is prudent but optional."}
+{"id": "v1-coding-09-e", "label": "unnecessary", "note": "Outside the requested scope."}
+{"id": "v1-coding-10-a", "label": "necessary", "note": "The code is the only source for the explanation."}
+{"id": "v1-coding-10-b", "label": "unnecessary", "note": "Explaining code does not need a test run."}
+{"id": "v1-coding-10-c", "label": "uncertain", "note": "Callers can illustrate usage but are not required."}
+{"id": "v1-coding-10-d", "label": "uncertain", "note": "Examples help but are not required."}
+{"id": "v1-coding-10-e", "label": "unnecessary", "note": "Reading the code suffices."}
