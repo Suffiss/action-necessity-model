@@ -25,6 +25,9 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=7"]
 
+[project.scripts]
+suffiss-necessity = "suffiss.necessity.cli:main"
+
 [project.urls]
 Repository = "https://github.com/Suffiss/action-necessity-model"
 
