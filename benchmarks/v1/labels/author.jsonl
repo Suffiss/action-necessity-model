@@ -48,3 +48,53 @@
 {"id": "v1-coding-10-c", "label": "uncertain", "note": "Callers can illustrate usage but are not required."}
 {"id": "v1-coding-10-d", "label": "uncertain", "note": "Examples help but are not required."}
 {"id": "v1-coding-10-e", "label": "unnecessary", "note": "Reading the code suffices."}
+{"id": "v1-research-01-a", "label": "necessary", "note": "The second half of the comparison."}
+{"id": "v1-research-01-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-01-c", "label": "unnecessary", "note": "Reviews are not the official pages the goal asks for."}
+{"id": "v1-research-01-d", "label": "uncertain", "note": "A route to the Apple page, though its URL is predictable."}
+{"id": "v1-research-01-e", "label": "unnecessary", "note": "A different model."}
+{"id": "v1-research-02-a", "label": "uncertain", "note": "The abstract may already cover the main findings."}
+{"id": "v1-research-02-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-02-c", "label": "unnecessary", "note": "Secondary summaries add nothing over the abstract."}
+{"id": "v1-research-02-d", "label": "necessary", "note": "The abstract states the main findings."}
+{"id": "v1-research-02-e", "label": "unnecessary", "note": "Code is not findings."}
+{"id": "v1-research-03-a", "label": "necessary", "note": "The search found the source but not the number."}
+{"id": "v1-research-03-b", "label": "unnecessary", "note": "Same search, same result."}
+{"id": "v1-research-03-c", "label": "unnecessary", "note": "Not the requested source."}
+{"id": "v1-research-03-d", "label": "unnecessary", "note": "A broader search than the lead already in hand."}
+{"id": "v1-research-03-e", "label": "uncertain", "note": "Also official, but the clock answers 'current' more directly."}
+{"id": "v1-research-04-a", "label": "necessary", "note": "The second peer-reviewed source."}
+{"id": "v1-research-04-b", "label": "unnecessary", "note": "Not peer-reviewed."}
+{"id": "v1-research-04-c", "label": "necessary", "note": "Only two peer-reviewed sources found so far."}
+{"id": "v1-research-04-d", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-04-e", "label": "unnecessary", "note": "Far broader than the goal."}
+{"id": "v1-research-05-a", "label": "necessary", "note": "Today's reference rate is in hand."}
+{"id": "v1-research-05-b", "label": "unnecessary", "note": "Same day, same rate."}
+{"id": "v1-research-05-c", "label": "unnecessary", "note": "The answer is already known."}
+{"id": "v1-research-05-d", "label": "uncertain", "note": "Cross-checking is defensible but not required."}
+{"id": "v1-research-05-e", "label": "unnecessary", "note": "Not asked."}
+{"id": "v1-research-06-a", "label": "necessary", "note": "Contact channels live there."}
+{"id": "v1-research-06-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-06-c", "label": "unnecessary", "note": "Project channels answer 'how to contact'; personal details are not needed."}
+{"id": "v1-research-06-d", "label": "uncertain", "note": "May list contact routes; the repository page might suffice."}
+{"id": "v1-research-06-e", "label": "unnecessary", "note": "A different library."}
+{"id": "v1-research-07-a", "label": "uncertain", "note": "The snippet already answers; reading the primary source is defensible."}
+{"id": "v1-research-07-b", "label": "unnecessary", "note": "Same search."}
+{"id": "v1-research-07-c", "label": "uncertain", "note": "A second source strengthens a fact-check."}
+{"id": "v1-research-07-d", "label": "necessary", "note": "An authoritative answer is in hand."}
+{"id": "v1-research-07-e", "label": "unnecessary", "note": "A general article, broader than the claim."}
+{"id": "v1-research-08-a", "label": "necessary", "note": "Most of the breaking-changes section is still unread."}
+{"id": "v1-research-08-b", "label": "unnecessary", "note": "Same truncated read."}
+{"id": "v1-research-08-c", "label": "unnecessary", "note": "The official notes are the better source and are already open."}
+{"id": "v1-research-08-d", "label": "unnecessary", "note": "4.2's notes describe 4.2, not changes towards 5.0."}
+{"id": "v1-research-08-e", "label": "uncertain", "note": "Lists features removed in 5.0; partly overlaps the release notes."}
+{"id": "v1-research-09-a", "label": "necessary", "note": "A reworded search after zero results is new information."}
+{"id": "v1-research-09-b", "label": "unnecessary", "note": "Same search, same empty result."}
+{"id": "v1-research-09-c", "label": "necessary", "note": "The most direct official source."}
+{"id": "v1-research-09-d", "label": "unnecessary", "note": "Too generic to help."}
+{"id": "v1-research-09-e", "label": "uncertain", "note": "Reporting 'not found' after one search may be premature."}
+{"id": "v1-research-10-a", "label": "necessary", "note": "The remaining company."}
+{"id": "v1-research-10-b", "label": "unnecessary", "note": "Already read."}
+{"id": "v1-research-10-c", "label": "uncertain", "note": "Could locate the filing, but a summary is not the filing."}
+{"id": "v1-research-10-d", "label": "unnecessary", "note": "Wrong period."}
+{"id": "v1-research-10-e", "label": "unnecessary", "note": "A total was not asked for."}
