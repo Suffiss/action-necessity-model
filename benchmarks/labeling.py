@@ -112,16 +112,18 @@ def export_sheet(cases: Sequence[Mapping[str, Any]], path: Path) -> None:
 def import_sheet(path: Path, known_ids: Iterable[str], allow_partial: bool = False) -> list[dict[str, str]]:
     known = set(known_ids)
     rows: list[dict[str, str]] = []
+    unlabelled = 0
     with path.open(encoding="utf-8-sig", newline="") as source:
         for line, row in enumerate(csv.DictReader(source), start=2):
             if row.get("id") not in known:
                 raise ValueError(f"{path}:{line}: unknown case id {row.get('id')!r}")
             label = parse_label(row.get("label") or "")
-            if label is not None:
+            if label is None:
+                unlabelled += 1
+            else:
                 rows.append({"id": row["id"], "label": label, "note": (row.get("note") or "").strip()})
-    missing = known - {row["id"] for row in rows}
-    if missing and not allow_partial:
-        raise ValueError(f"{len(missing)} cases have no label (use --allow-partial to import anyway)")
+    if unlabelled and not allow_partial:
+        raise ValueError(f"{unlabelled} cases have no label (use --allow-partial to import anyway)")
     return rows
 
 
@@ -149,8 +151,19 @@ def gold_rows(cases: Sequence[Mapping[str, Any]], gold: Mapping[str, str], voter
 
 # ---------------------------------------------------------------- commands
 
+def select_contexts(cases: Sequence[Mapping[str, Any]], context_ids: Iterable[str]) -> list[Mapping[str, Any]]:
+    wanted = set(context_ids)
+    unknown = wanted - {case["context_id"] for case in cases}
+    if unknown:
+        raise ValueError(f"unknown context ids: {sorted(unknown)}")
+    return [case for case in cases if case["context_id"] in wanted]
+
+
 def _cmd_export(args: argparse.Namespace) -> int:
     cases = load_cases()
+    if args.contexts:
+        lines = (line.strip() for line in Path(args.contexts).read_text(encoding="utf-8").splitlines())
+        cases = select_contexts(cases, [line for line in lines if line and not line.startswith("#")])
     export_sheet(cases, Path(args.out))
     print(f"wrote {len(cases)} cases to {args.out}")
     return 0
@@ -196,6 +209,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     export = sub.add_parser("export", help="write a blank labeling sheet (CSV)")
     export.add_argument("--out", default="labeling-sheet.csv")
+    export.add_argument("--contexts", help="file listing context ids to export (e.g. benchmarks/v1/pilot.txt)")
     export.set_defaults(handler=_cmd_export)
     imp = sub.add_parser("import", help="import a filled sheet as one annotator's labels")
     imp.add_argument("sheet")
