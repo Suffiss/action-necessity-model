@@ -39,6 +39,8 @@ def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(labeling, "CASES_PATH", v1 / "cases.jsonl")
     monkeypatch.setattr(labeling, "LABELS_DIR", v1 / "labels")
     monkeypatch.setattr(labeling, "ADJUDICATION_PATH", v1 / "adjudication.jsonl")
+    (v1 / "pilot.txt").write_text("# pilot\nc2\n", encoding="utf-8")
+    monkeypatch.setattr(labeling, "PILOT_PATH", v1 / "pilot.txt")
     return tmp_path
 
 
@@ -166,6 +168,39 @@ def test_import_web_command_writes_annotator_labels(workspace: Path) -> None:
     source.write_text(json.dumps({"data": _web_doc(labels={"c2-a": {"label": "uncertain", "note": ""}})}), encoding="utf-8")
     assert labeling.main(["import-web", str(source)]) == 0
     assert labeling.load_annotations() == {"lin": {"c2-a": "uncertain"}}
+
+
+def test_skipped_cases_count_as_answered_but_not_as_votes(workspace: Path) -> None:
+    sheet, filled = workspace / "sheet.csv", workspace / "filled.csv"
+    export_sheet(load_cases(), sheet)
+    _fill(sheet, filled, {"c1-a": "n", "c1-b": "看不懂", "c2-a": "skip"})
+    assert import_sheet(filled, [c["id"] for c in load_cases()]) == [{"id": "c1-a", "label": "necessary", "note": ""}]
+
+
+def test_import_code_round_trip_records_labels_and_background(workspace: Path) -> None:
+    from benchmarks.answer_code import encode
+
+    groups = labeling.code_groups(load_cases(), labeling.read_pilot())
+    assert groups["pilot"] == [["c2-a"]] and groups["full"] == [["c1-a", "c1-b"], ["c2-a"]]
+    code = encode(groups["full"], {"c1-a": "necessary", "c1-b": "skip", "c2-a": "uncertain"}, "full", programmer=False)
+    assert labeling.main(["import-code", code, "--annotator", "grandma"]) == 0
+    assert labeling.load_annotations() == {"grandma": {"c1-a": "necessary", "c2-a": "uncertain"}}
+    background = json.loads((labeling.LABELS_DIR / labeling.BACKGROUND_FILE).read_text(encoding="utf-8"))
+    assert background == {"grandma": {"programmer": False}}
+
+
+def test_import_code_rejects_a_misread_code(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert labeling.main(["import-code", "V1-F-L\n01:12 02:1\nCHK 99", "--annotator", "x"]) == 2
+    assert capsys.readouterr().err.startswith("error:")
+
+
+def test_import_web_uses_annotator_override_for_display_names(workspace: Path) -> None:
+    source = workspace / "doc.json"
+    doc = {"name": "王奶奶", "programmer": False, "set": "pilot", "labels": {"c2-a": {"label": "skip"}, "c1-a": {"label": "unnecessary"}}}
+    source.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    assert labeling.main(["import-web", str(source)]) == 2
+    assert labeling.main(["import-web", str(source), "--annotator", "wang"]) == 0
+    assert labeling.load_annotations() == {"wang": {"c1-a": "unnecessary"}}
 
 
 def test_author_labels_are_excluded_from_gold(workspace: Path) -> None:

@@ -3,6 +3,8 @@
 Usage (from the repository root):
     python -m benchmarks.labeling export --out sheet.csv
     python -m benchmarks.labeling import filled.csv --annotator alice
+    python -m benchmarks.labeling import-web doc.json [--annotator alice]
+    python -m benchmarks.labeling import-code code.txt --annotator alice
     python -m benchmarks.labeling agree
     python -m benchmarks.labeling gold [--test-fraction 0.6]
 
@@ -19,6 +21,7 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
+from benchmarks import answer_code
 from benchmarks.agreement import all_pairs, build_gold, format_pairs, in_test_split
 from suffiss.necessity import ActionContext
 
@@ -26,6 +29,9 @@ V1_DIR = Path(__file__).with_name("v1")
 CASES_PATH = V1_DIR / "cases.jsonl"
 LABELS_DIR = V1_DIR / "labels"
 ADJUDICATION_PATH = V1_DIR / "adjudication.jsonl"
+PILOT_PATH = V1_DIR / "pilot.txt"
+BACKGROUND_FILE = "annotators.json"  # lives in LABELS_DIR; .json so it is never read as labels
+SKIP = "skip"  # "I don't understand this case": answered, but never a vote
 AUTHOR = "author"  # the case writer's own labels: kept for bias analysis, never used for gold
 SHEET_COLUMNS = ("id", "category", "goal", "current_state", "history", "proposed_action", "label", "note")
 _CASE_FIELDS = ("id", "context_id", "category", "goal", "current_state", "history", "proposed_action")
@@ -34,6 +40,7 @@ _LABEL_ALIASES = {
     "necessary": "necessary", "n": "necessary", "nec": "necessary",
     "unnecessary": "unnecessary", "u": "unnecessary", "unnec": "unnecessary",
     "uncertain": "uncertain", "?": "uncertain", "unc": "uncertain",
+    "skip": SKIP, "看不懂": SKIP,
 }  # fmt: skip
 
 
@@ -74,7 +81,7 @@ def parse_label(raw: str) -> str | None:
     if not value:
         return None
     if value not in _LABEL_ALIASES:
-        raise ValueError(f"unknown label {raw!r}; use necessary/unnecessary/uncertain (or n/u/?)")
+        raise ValueError(f"unknown label {raw!r}; use necessary/unnecessary/uncertain/skip (or n/u/?)")
     return _LABEL_ALIASES[value]
 
 
@@ -120,23 +127,27 @@ def import_sheet(path: Path, known_ids: Iterable[str], allow_partial: bool = Fal
             label = parse_label(row.get("label") or "")
             if label is None:
                 unlabelled += 1
-            else:
+            elif label != SKIP:
                 rows.append({"id": row["id"], "label": label, "note": (row.get("note") or "").strip()})
     if unlabelled and not allow_partial:
         raise ValueError(f"{unlabelled} cases have no label (use --allow-partial to import anyway)")
     return rows
 
 
-def import_web_document(document: Mapping[str, Any], known_ids: Iterable[str]) -> tuple[str, str, list[dict[str, str]]]:
+def import_web_document(
+    document: Mapping[str, Any], known_ids: Iterable[str], annotator: str | None = None
+) -> tuple[str, str, list[dict[str, str]]]:
     """Validate one annotator's document saved by the web labeling page.
 
     Accepts the page's body or a database record wrapping it in ``data``.
-    Returns (annotator, task set, label rows); the page's content is untrusted input.
+    The page stores a free-text display name, so ``annotator`` supplies the
+    code name when the document has no valid one. Returns (annotator, task
+    set, label rows); the page's content is untrusted input.
     """
     body = document.get("data", document)
     if not isinstance(body, Mapping) or not isinstance(body.get("labels"), Mapping):
         raise ValueError("not a labeling-page document (missing 'labels')")
-    annotator = validate_annotator(str(body.get("annotator", "")))
+    annotator = validate_annotator(annotator or str(body.get("annotator", "")))
     known = set(known_ids)
     rows = []
     for case_id, entry in body["labels"].items():
@@ -145,9 +156,32 @@ def import_web_document(document: Mapping[str, Any], known_ids: Iterable[str]) -
         if not isinstance(entry, Mapping):
             raise ValueError(f"{annotator}: malformed entry for {case_id}")
         label = parse_label(str(entry.get("label") or ""))
-        if label is not None:
+        if label not in (None, SKIP):
             rows.append({"id": case_id, "label": label, "note": str(entry.get("note") or "").strip()[:300]})
     return annotator, str(body.get("set", "")), sorted(rows, key=lambda row: row["id"])
+
+
+def code_groups(cases: Sequence[Mapping[str, Any]], pilot: Sequence[str]) -> dict[str, list[list[str]]]:
+    """Candidate ids per scenario, in the labeling page's order, for each task set."""
+    by_context: dict[str, list[str]] = {}
+    for case in cases:
+        by_context.setdefault(case["context_id"], []).append(case["id"])
+    contexts = [case["context_id"] for case in cases]
+    return {s: [by_context[c] for c in answer_code.scenario_order(contexts, pilot, s)] for s in ("pilot", "full")}
+
+
+def read_pilot() -> list[str]:
+    lines = (line.strip() for line in PILOT_PATH.read_text(encoding="utf-8").splitlines())
+    return [line for line in lines if line and not line.startswith("#")]
+
+
+def record_background(annotator: str, programmer: bool | None) -> None:
+    """Remember whether an annotator writes code, so expert and lay labels can be analysed apart."""
+    path = LABELS_DIR / BACKGROUND_FILE
+    records = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    records[annotator] = {"programmer": programmer}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(records, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
 
 
 # -------------------------------------------------------------- annotations
@@ -201,11 +235,28 @@ def _cmd_import(args: argparse.Namespace) -> int:
 
 
 def _cmd_import_web(args: argparse.Namespace) -> int:
+    if args.annotator and len(args.documents) != 1:
+        raise ValueError("--annotator names one person, so pass exactly one document with it")
     known = [c["id"] for c in load_cases()]
     for source in args.documents:
-        annotator, task_set, rows = import_web_document(json.loads(Path(source).read_text(encoding="utf-8")), known)
+        document = json.loads(Path(source).read_text(encoding="utf-8"))
+        annotator, task_set, rows = import_web_document(document, known, args.annotator)
         _write_jsonl(LABELS_DIR / f"{annotator}.jsonl", rows)
+        body = document.get("data", document)
+        record_background(annotator, body.get("programmer") if isinstance(body.get("programmer"), bool) else None)
         print(f"imported {len(rows)} labels for {annotator} (task set: {task_set or 'unknown'})")
+    return 0
+
+
+def _cmd_import_code(args: argparse.Namespace) -> int:
+    name = validate_annotator(args.annotator)
+    text = Path(args.code).read_text(encoding="utf-8") if Path(args.code).is_file() else args.code
+    decoded = answer_code.decode(text, code_groups(load_cases(), read_pilot()))
+    rows = [{"id": cid, "label": label, "note": ""} for cid, label in sorted(decoded.labels.items()) if label != SKIP]
+    _write_jsonl(LABELS_DIR / f"{name}.jsonl", rows)
+    record_background(name, decoded.programmer)
+    skipped = sum(1 for label in decoded.labels.values() if label == SKIP)
+    print(f"imported {len(rows)} labels for {name} ({decoded.task_set}; {skipped} marked 'don't understand')")
     return 0
 
 
@@ -250,7 +301,12 @@ def build_parser() -> argparse.ArgumentParser:
     imp.set_defaults(handler=_cmd_import)
     web = sub.add_parser("import-web", help="import documents saved by the web labeling page (JSON files)")
     web.add_argument("documents", nargs="+")
+    web.add_argument("--annotator", help="code name to use when the document only has a display name")
     web.set_defaults(handler=_cmd_import_web)
+    code = sub.add_parser("import-code", help="import an answer code (text, or a file containing it)")
+    code.add_argument("code")
+    code.add_argument("--annotator", required=True)
+    code.set_defaults(handler=_cmd_import_code)
     agree = sub.add_parser("agree", help="pairwise agreement between all annotators (including author)")
     agree.add_argument("--show-disagreements", action="store_true")
     agree.set_defaults(handler=_cmd_agree)
