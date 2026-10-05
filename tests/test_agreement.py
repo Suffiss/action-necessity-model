@@ -58,6 +58,41 @@ def test_combine_votes(votes: list[str], expected: str | None) -> None:
     assert combine_votes(votes) == expected
 
 
+@pytest.mark.parametrize(
+    ("votes", "expected"),
+    [
+        ([N] * 7 + [U] * 2 + [Q], N),  # 70% clears the two-thirds bar
+        ([U] * 5 + [N] * 4 + [Q], None),  # a genuine split between the two decisive labels
+        ([N] * 5 + [Q] * 5, Q),  # torn only between "necessary" and "unsure"
+        ([N] * 6 + [U] * 3, N),  # exactly two thirds
+    ],
+)
+def test_combine_votes_with_many_annotators(votes: list[str], expected: str | None) -> None:
+    assert combine_votes(votes) == expected
+
+
+def test_supermajority_recovers_truth_from_many_noisy_voters() -> None:
+    # 25 independent voters who each match the truth 75% of the time: a strict
+    # "any disagreement is a dispute" rule would dispute every case.
+    import random
+
+    rng = random.Random(7)
+    truth = {f"c{i}": rng.choice([N, U, Q]) for i in range(200)}
+    annotations = {
+        f"a{j}": {c: (t if rng.random() < 0.75 else rng.choice([N, U, Q])) for c, t in truth.items()} for j in range(25)
+    }
+    gold = build_gold(annotations)
+    recovered = sum(gold.labels.get(c) == t for c, t in truth.items())
+    assert recovered >= 190
+    assert len(gold.disputed) <= 5
+
+
+@pytest.mark.parametrize("share", [0.5, 0.3, 1.2])
+def test_build_gold_rejects_non_majority_thresholds(share: float) -> None:
+    with pytest.raises(ValueError):
+        build_gold({"a": {"x": N}, "b": {"x": N}}, min_share=share)
+
+
 def test_build_gold_reports_disputes_and_under_labelled_cases() -> None:
     annotations = {"ann": {"a": N, "b": N, "c": U}, "bob": {"a": N, "b": U}}
     result = build_gold(annotations)
