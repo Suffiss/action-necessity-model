@@ -61,6 +61,30 @@ The pilot scenarios were chosen from the dev split on purpose. Discussing them
 in step 2 makes them non-independent, which is acceptable for dev and not for
 test.
 
+## Synthetic annotations
+
+Simulated annotators (for example LLM-generated personas) are **not** people.
+They are only useful for:
+
+- stress-testing the tooling;
+- prototyping analysis code;
+- forming hypotheses before real labeling.
+
+They must never become gold, and the importers refuse them: documents
+flagged `"synthetic": true` and annotator names starting with `syn` are
+rejected.
+
+A 90,000-label synthetic set (300 personas × 300 cases) supplied for this
+project shows why. It was generated with the author's labels as its prior,
+and its majority label equals the author's label on 300/300 cases, so treating
+it as annotators would simply turn the author's labels into gold.
+
+Its one durable contribution: a stress test showing that the original gold
+rule did not scale. That rule disputed any necessary-vs-unnecessary split, so
+with 5 voters 45% of cases were disputed and with 300 voters all of them were.
+The supermajority rule above replaced it. On the same data, disputes fall as
+voters are added: 54 with 2 voters, 23 with 5, 4 with 10.
+
 ## Measuring author bias
 
 `agree` includes `author` alongside the annotators.
