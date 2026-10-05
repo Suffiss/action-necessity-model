@@ -124,12 +124,17 @@ about an hour, because labeling quality drops when tired.
 
 How `gold` treats each case:
 
-- **Unanimous:** the shared label stands.
-- **Mixed with `uncertain`:** becomes `uncertain`.
-- **`necessary` vs `unnecessary`:** listed as *disputed*. Resolve it by
-  discussion and record the outcome in `benchmarks/v1/adjudication.jsonl`
+- **Supermajority:** a label backed by at least two thirds of the votes
+  stands (`--min-share`). With two annotators this means they must agree.
+- **`necessary` vs `unnecessary` both strong** (each side holding at least a
+  third): listed as *disputed*. Resolve it by discussion and record the
+  outcome in `benchmarks/v1/adjudication.jsonl`
   (`{"id": ..., "label": ..., "note": ...}`).
+- **Any other split:** becomes `uncertain`.
+- **"Don't understand" (`skip`) answers are not votes.**
 - **The author's labels never count towards gold.**
+- **Synthetic (simulated) annotators never count towards gold** and cannot
+  be imported. The `syn` name prefix is reserved for them.
 
 Splitting:
 

@@ -68,7 +68,12 @@ def test_parse_label_rejects_unknown_values() -> None:
         parse_label("maybe")
 
 
-@pytest.mark.parametrize("name", ["../evil", "Alice", "", "a" * 40, "author"])
+def test_synthetic_documents_are_refused() -> None:
+    with pytest.raises(ValueError, match="synthetic"):
+        labeling.import_web_document({"synthetic": True, "annotator": "x", "labels": {}}, [])
+
+
+@pytest.mark.parametrize("name", ["../evil", "Alice", "", "a" * 40, "author", "syn_001", "synthetic"])
 def test_annotator_names_are_restricted(name: str) -> None:
     with pytest.raises(ValueError):
         validate_annotator(name)

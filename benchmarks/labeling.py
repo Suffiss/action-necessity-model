@@ -32,6 +32,7 @@ ADJUDICATION_PATH = V1_DIR / "adjudication.jsonl"
 PILOT_PATH = V1_DIR / "pilot.txt"
 BACKGROUND_FILE = "annotators.json"  # lives in LABELS_DIR; .json so it is never read as labels
 SKIP = "skip"  # "I don't understand this case": answered, but never a vote
+SYNTHETIC_PREFIX = "syn"  # simulated annotators may be analysed elsewhere but never imported as people
 AUTHOR = "author"  # the case writer's own labels: kept for bias analysis, never used for gold
 SHEET_COLUMNS = ("id", "category", "goal", "current_state", "history", "proposed_action", "label", "note")
 _CASE_FIELDS = ("id", "context_id", "category", "goal", "current_state", "history", "proposed_action")
@@ -73,6 +74,9 @@ def validate_annotator(name: str) -> str:
         raise ValueError("annotator name must be 1-32 chars of a-z, 0-9, '_' or '-'")
     if name == AUTHOR:
         raise ValueError(f"'{AUTHOR}' is reserved for the case writer's labels")
+    if name.startswith(SYNTHETIC_PREFIX):
+        # Simulated annotators derived from the author's labels would turn gold into the author's labels.
+        raise ValueError(f"names starting with '{SYNTHETIC_PREFIX}' are reserved for synthetic data, which never counts as a person")
     return name
 
 
@@ -147,6 +151,8 @@ def import_web_document(
     body = document.get("data", document)
     if not isinstance(body, Mapping) or not isinstance(body.get("labels"), Mapping):
         raise ValueError("not a labeling-page document (missing 'labels')")
+    if body.get("synthetic") is True:
+        raise ValueError("synthetic labels are not annotations by people and cannot be imported")
     annotator = validate_annotator(annotator or str(body.get("annotator", "")))
     known = set(known_ids)
     rows = []
@@ -275,7 +281,7 @@ def _cmd_agree(args: argparse.Namespace) -> int:
 def _cmd_gold(args: argparse.Namespace) -> int:
     cases = load_cases()
     annotations = load_annotations()
-    result = build_gold(annotations, load_adjudication(), min_votes=args.min_votes)
+    result = build_gold(annotations, load_adjudication(), min_votes=args.min_votes, min_share=args.min_share)
     rows = gold_rows(cases, result.labels, sorted(annotations))
     test = [row for row in rows if in_test_split(row["context_id"], args.test_fraction)]
     dev = [row for row in rows if not in_test_split(row["context_id"], args.test_fraction)]
@@ -313,6 +319,7 @@ def build_parser() -> argparse.ArgumentParser:
     gold = sub.add_parser("gold", help="build gold dev/test sets from independent annotators")
     gold.add_argument("--test-fraction", type=float, default=0.6)
     gold.add_argument("--min-votes", type=int, default=2)
+    gold.add_argument("--min-share", type=float, default=2 / 3, help="share of votes a label needs to become gold")
     gold.set_defaults(handler=_cmd_gold)
     return parser
 

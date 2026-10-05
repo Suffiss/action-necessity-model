@@ -80,22 +80,40 @@ class GoldResult:
     under_labelled: tuple[str, ...]  # fewer annotators than required
 
 
-def combine_votes(votes: Iterable[str]) -> str | None:
+DEFAULT_MIN_SHARE = 2 / 3
+
+
+def combine_votes(votes: Iterable[str], min_share: float = DEFAULT_MIN_SHARE) -> str | None:
     """Gold label from independent votes, or None when adjudication is needed.
 
-    Unanimous votes stand. A necessary-vs-unnecessary split is a real dispute.
-    Any other split means at least one careful reader found the case
-    ambiguous, which is what ``uncertain`` denotes.
+    A label backed by at least ``min_share`` of the votes stands; with two
+    annotators that means unanimity. Otherwise, a real necessary-vs-unnecessary
+    split (each side holding at least the remaining share) is a dispute, and
+    any other split means careful readers found the case ambiguous, which is
+    what ``uncertain`` denotes. A strict "any disagreement" rule would leave
+    almost nothing undisputed once more than a few people label a case.
     """
-    distinct = set(votes)
-    if len(distinct) == 1:
-        return distinct.pop()
-    if {"necessary", "unnecessary"} <= distinct:
+    counts = Counter(votes)
+    total = sum(counts.values())
+    if not total:
+        raise ValueError("no votes to combine")
+    label, top = counts.most_common(1)[0]
+    if top / total >= min_share - 1e-9:
+        return label
+    minority = 1.0 - min_share
+    if counts["necessary"] / total >= minority - 1e-9 and counts["unnecessary"] / total >= minority - 1e-9:
         return None
     return "uncertain"
 
 
-def build_gold(annotations: Mapping[str, Labels], adjudicated: Labels | None = None, min_votes: int = 2) -> GoldResult:
+def build_gold(
+    annotations: Mapping[str, Labels],
+    adjudicated: Labels | None = None,
+    min_votes: int = 2,
+    min_share: float = DEFAULT_MIN_SHARE,
+) -> GoldResult:
+    if not 0.5 < min_share <= 1.0:
+        raise ValueError("min_share must be above 0.5 (a majority) and at most 1")
     adjudicated = adjudicated or {}
     case_ids = sorted({case_id for labels in annotations.values() for case_id in labels})
     gold: dict[str, str] = {}
@@ -105,7 +123,7 @@ def build_gold(annotations: Mapping[str, Labels], adjudicated: Labels | None = N
         if len(votes) < min_votes:
             under.append(case_id)
             continue
-        label = adjudicated.get(case_id) or combine_votes(votes)
+        label = adjudicated.get(case_id) or combine_votes(votes, min_share)
         if label is None:
             disputed.append(case_id)
         else:
