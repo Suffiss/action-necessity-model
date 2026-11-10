@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
-from benchmarks import answer_code
+from benchmarks import annotation_report, answer_code
 from benchmarks.agreement import all_pairs, build_gold, format_pairs, in_test_split
 from suffiss.necessity import ActionContext
 
@@ -297,6 +297,14 @@ def _cmd_agree(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_report(args: argparse.Namespace) -> int:
+    everyone = load_annotations(include_author=True)
+    author = everyone.pop(AUTHOR, {})
+    categories = {case["id"]: case["category"] for case in load_cases()}
+    print(annotation_report.format_report(everyone, load_backgrounds(), author, categories))
+    return 0
+
+
 def _cmd_gold(args: argparse.Namespace) -> int:
     cases = load_cases()
     annotations = load_annotations()
@@ -335,6 +343,8 @@ def build_parser() -> argparse.ArgumentParser:
     agree = sub.add_parser("agree", help="pairwise agreement between all annotators (including author)")
     agree.add_argument("--show-disagreements", action="store_true")
     agree.set_defaults(handler=_cmd_agree)
+    report = sub.add_parser("report", help="annotator overview, agreement by background, author bias, skips, disputes")
+    report.set_defaults(handler=_cmd_report)
     gold = sub.add_parser("gold", help="build gold dev/test sets from independent annotators")
     gold.add_argument("--test-fraction", type=float, default=0.6)
     gold.add_argument("--min-votes", type=int, default=2)

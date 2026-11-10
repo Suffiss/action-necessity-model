@@ -222,6 +222,19 @@ def test_import_web_uses_annotator_override_for_display_names(workspace: Path) -
     assert labeling.load_annotations() == {"wang": {"c1-a": "unnecessary"}}
 
 
+def test_report_command_compares_people_with_the_author(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    labels_dir = labeling.LABELS_DIR
+    labels_dir.mkdir()
+    (labels_dir / "author.jsonl").write_text('{"id": "c1-a", "label": "unnecessary"}', encoding="utf-8")
+    (labels_dir / "ann.jsonl").write_text('{"id": "c1-a", "label": "necessary"}', encoding="utf-8")
+    labeling.record_background("ann", False, ["c2-a"])
+    assert labeling.main(["report"]) == 0
+    out = capsys.readouterr().out
+    assert "Annotators: 1" in out
+    assert "author stricter (author unnecessary, person necessary): 1" in out
+    assert "c2-a  skipped by 1" in out
+
+
 def test_author_labels_are_excluded_from_gold(workspace: Path) -> None:
     labels_dir = labeling.LABELS_DIR
     labels_dir.mkdir()
