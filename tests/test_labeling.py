@@ -191,12 +191,26 @@ def test_import_code_round_trip_records_labels_and_background(workspace: Path) -
     assert labeling.main(["import-code", code, "--annotator", "grandma"]) == 0
     assert labeling.load_annotations() == {"grandma": {"c1-a": "necessary", "c2-a": "uncertain"}}
     background = json.loads((labeling.LABELS_DIR / labeling.BACKGROUND_FILE).read_text(encoding="utf-8"))
-    assert background == {"grandma": {"programmer": False}}
+    assert background == {"grandma": {"programmer": False, "skipped": ["c1-b"]}}
 
 
 def test_import_code_rejects_a_misread_code(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert labeling.main(["import-code", "V1-F-L\n01:12 02:1\nCHK 99", "--annotator", "x"]) == 2
     assert capsys.readouterr().err.startswith("error:")
+
+
+def test_csv_and_web_imports_record_skipped_cases(workspace: Path) -> None:
+    sheet, filled = workspace / "sheet.csv", workspace / "filled.csv"
+    export_sheet(load_cases(), sheet)
+    _fill(sheet, filled, {"c1-a": "n", "c1-b": "看不懂", "c2-a": "u"})
+    assert labeling.main(["import", str(filled), "--annotator", "ann"]) == 0
+    doc = workspace / "doc.json"
+    doc.write_text(json.dumps({"programmer": True, "labels": {"c2-a": {"label": "skip"}, "c1-a": {"label": "necessary"}}}), encoding="utf-8")
+    assert labeling.main(["import-web", str(doc), "--annotator", "bob"]) == 0
+    assert labeling.load_backgrounds() == {
+        "ann": {"programmer": None, "skipped": ["c1-b"]},
+        "bob": {"programmer": True, "skipped": ["c2-a"]},
+    }
 
 
 def test_import_web_uses_annotator_override_for_display_names(workspace: Path) -> None:
@@ -206,6 +220,19 @@ def test_import_web_uses_annotator_override_for_display_names(workspace: Path) -
     assert labeling.main(["import-web", str(source)]) == 2
     assert labeling.main(["import-web", str(source), "--annotator", "wang"]) == 0
     assert labeling.load_annotations() == {"wang": {"c1-a": "unnecessary"}}
+
+
+def test_report_command_compares_people_with_the_author(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    labels_dir = labeling.LABELS_DIR
+    labels_dir.mkdir()
+    (labels_dir / "author.jsonl").write_text('{"id": "c1-a", "label": "unnecessary"}', encoding="utf-8")
+    (labels_dir / "ann.jsonl").write_text('{"id": "c1-a", "label": "necessary"}', encoding="utf-8")
+    labeling.record_background("ann", False, ["c2-a"])
+    assert labeling.main(["report"]) == 0
+    out = capsys.readouterr().out
+    assert "Annotators: 1" in out
+    assert "author stricter (author unnecessary, person necessary): 1" in out
+    assert "c2-a  skipped by 1" in out
 
 
 def test_author_labels_are_excluded_from_gold(workspace: Path) -> None:
