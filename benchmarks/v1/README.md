@@ -53,6 +53,7 @@ There are two ways to label, and both produce the same `labels/<annotator>.jsonl
 | 2 | **Review the pilot.** Import both sheets, check agreement, and discuss disagreements. Revise the guide if the disagreements reveal an unclear rule rather than a genuinely ambiguous case. | `agree --show-disagreements` |
 | 3 | **Full labeling.** The same (or new) annotators label all 300 cases independently. | `export --out sheet.csv`, then `import filled.csv --annotator NAME` |
 | 4 | **Agreement.** Report pairwise Cohen's kappa. Below 0.4 ("fair" or worse), the task definition itself needs work before any gate results mean much. | `agree` |
+| 4b | **Analysis.** `report` covers: (1) agreement by background (both code, neither codes, mixed); (2) author bias in both directions, where *author stricter* is the gate's risky direction; (3) agreement per category; (4) the most-skipped cases, which are the first candidates for rewording; (5) disputed cases. | `report` |
 | 5 | **Adjudication.** Resolve cases where annotators split `necessary` vs `unnecessary` by discussion. Record outcomes in `adjudication.jsonl`. | |
 | 6 | **Gold.** Build the gold sets. Scenarios are split 40% dev / 60% test by a fixed hash of `context_id`, so no scenario straddles the split. | `gold` |
 | 7 | **Freeze test.** `gold-test.jsonl` is evaluated **once per evaluator version**. Never tune on it. Every run is appended to `benchmarks/RESULTS.md`. | `python -m benchmarks.runner benchmarks/v1/gold-test.jsonl` |
