@@ -1,0 +1,14 @@
+{
+  "_comment": "Floors checked on every test run. Raise them when results improve; lowering one needs a recorded reason in benchmarks/RESULTS.md. The held-out and v1 test sets are deliberately excluded: guarding them on every change would turn them into tuning sets.",
+  "dev": {
+    "max_false_unnecessary_rate": 0.0,
+    "min_accuracy": 0.9,
+    "min_unnecessary_action_detection_rate": 0.85
+  },
+  "simulation": {
+    "uncertain_policy": "execute",
+    "min_successful_trajectories_share": 1.0,
+    "min_saved_share": 0.3,
+    "max_skipped_essential_steps": 0
+  }
+}
