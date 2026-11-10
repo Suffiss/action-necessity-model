@@ -14,7 +14,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Sequence, TextIO
 
-from suffiss.necessity.evaluator import Evaluator, EvaluatorConfig
+from suffiss.necessity.evaluator import Evaluator, EvaluatorConfig, Explanation
 from suffiss.necessity.models import ActionDecision, ContextValidationError
 from suffiss.necessity.scoring import Thresholds
 
@@ -39,10 +39,27 @@ def _format_decision(decision: ActionDecision) -> str:
     return "\n".join(lines)
 
 
+def _format_explanation(explanation: Explanation) -> str:
+    lines = [_format_decision(explanation.decision), "", "How the score was reached:", f"  {'start':<26} +0.50"]
+    lines += [f"  {c.reason.value:<26} {c.value:+.2f}" for c in explanation.contributions]
+    lines.append(f"  {'= necessity score':<26} {explanation.rule_score:.2f}")
+    if explanation.score != explanation.rule_score:
+        lines.append(f"  {'after model adapter':<26} {explanation.score:.2f}")
+    lines += ["", "Facts:"] + [f"  {name}: {json.dumps(value)}" for name, value in explanation.facts.items()]
+    return "\n".join(lines)
+
+
 def _evaluate(args: argparse.Namespace, out: TextIO) -> int:
     thresholds = Thresholds(necessary=args.necessary, unnecessary=args.unnecessary)
-    decision = Evaluator(EvaluatorConfig(thresholds=thresholds)).evaluate(_read_context(args.input))
-    out.write((json.dumps(decision.to_dict(), indent=2) if args.json else _format_decision(decision)) + "\n")
+    evaluator = Evaluator(EvaluatorConfig(thresholds=thresholds))
+    context = _read_context(args.input)
+    if args.explain:
+        explanation = evaluator.explain(context)
+        text = json.dumps(explanation.to_dict(), indent=2) if args.json else _format_explanation(explanation)
+    else:
+        decision = evaluator.evaluate(context)
+        text = json.dumps(decision.to_dict(), indent=2) if args.json else _format_decision(decision)
+    out.write(text + "\n")
     return EXIT_OK
 
 
@@ -86,6 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate = commands.add_parser("evaluate", help="evaluate one action context (JSON file, or - for stdin)")
     evaluate.add_argument("input")
     evaluate.add_argument("--json", action="store_true", help="print the full decision as JSON")
+    evaluate.add_argument("--explain", action="store_true", help="also show every scored contribution and the facts behind it")
     evaluate.add_argument("--necessary", type=float, default=Thresholds.necessary, help="threshold for 'necessary'")
     evaluate.add_argument("--unnecessary", type=float, default=Thresholds.unnecessary, help="threshold for 'unnecessary'")
     evaluate.set_defaults(handler=_evaluate)

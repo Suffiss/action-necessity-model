@@ -72,3 +72,19 @@ def test_simulate_command_reports_both_policies() -> None:
     code, output = run("simulate")
     assert code == EXIT_OK
     assert "Uncertain policy: execute" in output and "Uncertain policy: skip" in output
+
+
+def test_explain_shows_the_score_breakdown() -> None:
+    code, output = run("evaluate", str(EXAMPLE), "--explain")
+    assert code == EXIT_OK
+    assert "How the score was reached:" in output
+    assert "DUPLICATE_ACTION           -0.50" in output
+    assert "= necessity score          0.15" in output
+    assert "matching_history_step" in output
+
+
+def test_explain_json_includes_contributions_and_facts() -> None:
+    _, output = run("evaluate", str(EXAMPLE), "--explain", "--json")
+    payload = json.loads(output)
+    assert payload["contributions"][0] == {"reason_code": "DUPLICATE_ACTION", "value": -0.5}
+    assert payload["facts"]["matching_history_step"]["step"] == 1
