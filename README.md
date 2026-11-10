@@ -109,6 +109,26 @@ if decision.decision is not Decision.UNNECESSARY:
 Thresholds, weights, the similarity provider and an optional model adapter
 are all set through `Evaluator(EvaluatorConfig(...))`.
 
+### In an agent loop
+
+`NecessityGate` holds the history for you:
+- it applies the recommended policy (uncertain actions run);
+- it caps blind retries of identical uncertain actions;
+- it counts what was saved.
+
+```python
+from suffiss.necessity import GateConfig, NecessityGate
+
+gate = NecessityGate("Fix typo in README", config=GateConfig(max_uncertain_repeats=2))
+for action in plan:
+    verdict, result = gate.run(action, execute=call_tool)  # call_tool runs only when allowed
+print(gate.stats.to_dict())  # proposed / allowed / skipped / saved_ratio / skipped_by_reason
+```
+
+Use `gate.check(action)` and `gate.record(action, result)` separately when
+your framework executes tools itself, and `gate.update_state(...)` when the
+agent learns that something changed outside its own actions.
+
 Runnable agent loops live in [`examples/`](examples). They use in-memory fake
 tools, so nothing touches your disk or network.
 
