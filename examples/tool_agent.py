@@ -1,23 +1,22 @@
-"""A tool-calling agent with a flaky API, showing how to handle ``uncertain``.
+"""A tool-calling agent with a flaky API, gated by NecessityGate.
 
 Run:  python examples/tool_agent.py
 
-The gate does not decide retry budgets; it reports when a retry is unchanged.
-This example's policy: run uncertain actions, but cap identical retries.
+The gate keeps the history, runs uncertain retries (the safe default), caps
+identical uncertain repeats, and reports how many calls it saved. The API is
+an in-memory fake that times out once.
 """
 
 from __future__ import annotations
 
-from collections import Counter
 from typing import Any
 
-from suffiss.necessity import Decision, evaluate_action
+from suffiss.necessity import Action, GateConfig, NecessityGate
 
-MAX_UNCERTAIN_REPEATS = 2
 _responses = iter(["Error: request timed out", "22C, clear"])
 
 
-def weather_api(city: str) -> str:
+def weather_api(action: Action) -> str:
     return next(_responses, "22C, clear")
 
 
@@ -26,20 +25,15 @@ def call(city: str) -> dict[str, Any]:
 
 
 def main() -> None:
-    goal = "Get the current weather in Tokyo"
-    history: list[dict[str, Any]] = []
-    attempts: Counter[str] = Counter()
+    gate = NecessityGate("Get the current weather in Tokyo", config=GateConfig(max_uncertain_repeats=2))
     for action in [call("Tokyo")] * 4:
-        decision = evaluate_action({"goal": goal, "history": history, "proposed_action": action})
-        key = repr(sorted(action["arguments"].items()))
-        over_budget = decision.decision is Decision.UNCERTAIN and attempts[key] >= MAX_UNCERTAIN_REPEATS
-        if decision.decision is Decision.UNNECESSARY or over_budget:
-            print(f"[skip] {decision.decision.value:<11} {decision.reason_code.value}")
-            continue
-        attempts[key] += 1
-        result = weather_api(action["arguments"]["city"])
-        history.append({"action": action, "result": result})
-        print(f"[run ] {decision.decision.value:<11} {decision.reason_code.value:<24} -> {result}")
+        verdict, result = gate.run(action, execute=weather_api)
+        if verdict.allow:
+            print(f"[run ] {verdict.decision.decision.value:<11} {verdict.why:<24} -> {result}")
+        else:
+            print(f"[skip] {verdict.decision.decision.value:<11} {verdict.why}")
+    stats = gate.stats
+    print(f"\nSaved {stats.skipped} of {stats.proposed} calls ({stats.saved_ratio:.0%}).")
 
 
 if __name__ == "__main__":
