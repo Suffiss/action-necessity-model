@@ -177,6 +177,15 @@ Hard cases were included on purpose:
 
 ### Process
 
+- **Guardrails.** `benchmarks/guardrails.json` records floors for the dev
+  benchmark (false unnecessary rate 0, accuracy, unnecessary detection) and
+  the simulation (every trajectory still succeeds, no essential step skipped,
+  minimum share of actions saved). `python -m benchmarks.guard` checks them in
+  CI on every change.
+  - Floors are raised when results improve. Lowering one needs a recorded
+    reason.
+  - The held-out and v1 test sets are never guarded, so they are not
+    evaluated on every change.
 - **Append-only logs.** Results logs are never edited, so regressions and
   overfitting stay visible. `simulations/RESULTS.md` records a regression this
   process caught: a reason-code fix made an essential edit skippable under the
