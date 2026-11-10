@@ -126,6 +126,20 @@ Confidence: 0.79
 Reason: DUPLICATE_ACTION
 ```
 
+Add `--explain` to see exactly how the score was reached:
+
+```text
+How the score was reached:
+  start                      +0.50
+  DUPLICATE_ACTION           -0.50
+  DIRECT_GOAL_DEPENDENCY     +0.15
+  = necessity score          0.15
+```
+
+The facts behind each contribution follow the table, for example which
+history step the action duplicates. In Python, `explain_action(context)`
+returns the same breakdown as an `Explanation`.
+
 ## Reason codes
 
 Reason codes are the primary output. The explanations are secondary.
