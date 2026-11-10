@@ -121,8 +121,14 @@ def export_sheet(cases: Sequence[Mapping[str, Any]], path: Path) -> None:
 
 
 def import_sheet(path: Path, known_ids: Iterable[str], allow_partial: bool = False) -> list[dict[str, str]]:
+    return read_sheet(path, known_ids, allow_partial)[0]
+
+
+def read_sheet(path: Path, known_ids: Iterable[str], allow_partial: bool = False) -> tuple[list[dict[str, str]], list[str]]:
+    """Label rows from a filled sheet, plus the ids marked "don't understand"."""
     known = set(known_ids)
     rows: list[dict[str, str]] = []
+    skipped: list[str] = []
     unlabelled = 0
     with path.open(encoding="utf-8-sig", newline="") as source:
         for line, row in enumerate(csv.DictReader(source), start=2):
@@ -131,11 +137,13 @@ def import_sheet(path: Path, known_ids: Iterable[str], allow_partial: bool = Fal
             label = parse_label(row.get("label") or "")
             if label is None:
                 unlabelled += 1
-            elif label != SKIP:
+            elif label == SKIP:
+                skipped.append(row["id"])
+            else:
                 rows.append({"id": row["id"], "label": label, "note": (row.get("note") or "").strip()})
     if unlabelled and not allow_partial:
         raise ValueError(f"{unlabelled} cases have no label (use --allow-partial to import anyway)")
-    return rows
+    return rows, skipped
 
 
 def import_web_document(
@@ -181,11 +189,14 @@ def read_pilot() -> list[str]:
     return [line for line in lines if line and not line.startswith("#")]
 
 
-def record_background(annotator: str, programmer: bool | None) -> None:
-    """Remember whether an annotator writes code, so expert and lay labels can be analysed apart."""
+def record_background(annotator: str, programmer: bool | None, skipped: Iterable[str] = ()) -> None:
+    """Remember whether an annotator writes code and which cases they could not judge.
+
+    Skips never become votes, but where people get stuck says which cases need rewording.
+    """
     path = LABELS_DIR / BACKGROUND_FILE
     records = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    records[annotator] = {"programmer": programmer}
+    records[annotator] = {"programmer": programmer, "skipped": sorted(set(skipped))}
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(records, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
 
@@ -199,6 +210,11 @@ def load_annotations(labels_dir: Path | None = None, include_author: bool = Fals
             continue
         annotations[path.stem] = {row["id"]: row["label"] for row in _read_jsonl(path)}
     return annotations
+
+
+def load_backgrounds(labels_dir: Path | None = None) -> dict[str, dict[str, Any]]:
+    path = (labels_dir or LABELS_DIR) / BACKGROUND_FILE
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
 def load_adjudication(path: Path | None = None) -> dict[str, str]:
@@ -234,8 +250,9 @@ def _cmd_export(args: argparse.Namespace) -> int:
 
 def _cmd_import(args: argparse.Namespace) -> int:
     name = validate_annotator(args.annotator)
-    rows = import_sheet(Path(args.sheet), (c["id"] for c in load_cases()), args.allow_partial)
+    rows, skipped = read_sheet(Path(args.sheet), (c["id"] for c in load_cases()), args.allow_partial)
     _write_jsonl(LABELS_DIR / f"{name}.jsonl", rows)
+    record_background(name, load_backgrounds().get(name, {}).get("programmer"), skipped)
     print(f"imported {len(rows)} labels for {name}")
     return 0
 
@@ -249,7 +266,9 @@ def _cmd_import_web(args: argparse.Namespace) -> int:
         annotator, task_set, rows = import_web_document(document, known, args.annotator)
         _write_jsonl(LABELS_DIR / f"{annotator}.jsonl", rows)
         body = document.get("data", document)
-        record_background(annotator, body.get("programmer") if isinstance(body.get("programmer"), bool) else None)
+        programmer = body.get("programmer") if isinstance(body.get("programmer"), bool) else None
+        skipped = [cid for cid, entry in body["labels"].items() if isinstance(entry, Mapping) and entry.get("label") == SKIP]
+        record_background(annotator, programmer, skipped)
         print(f"imported {len(rows)} labels for {annotator} (task set: {task_set or 'unknown'})")
     return 0
 
@@ -260,7 +279,7 @@ def _cmd_import_code(args: argparse.Namespace) -> int:
     decoded = answer_code.decode(text, code_groups(load_cases(), read_pilot()))
     rows = [{"id": cid, "label": label, "note": ""} for cid, label in sorted(decoded.labels.items()) if label != SKIP]
     _write_jsonl(LABELS_DIR / f"{name}.jsonl", rows)
-    record_background(name, decoded.programmer)
+    record_background(name, decoded.programmer, [cid for cid, label in decoded.labels.items() if label == SKIP])
     skipped = sum(1 for label in decoded.labels.values() if label == SKIP)
     print(f"imported {len(rows)} labels for {name} ({decoded.task_set}; {skipped} marked 'don't understand')")
     return 0
